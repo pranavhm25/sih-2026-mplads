@@ -4,25 +4,40 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from app.api.v1 import api_router
+from app.api.router import api_router
 from app.core.config import settings
-from app.core.database import Base, SessionLocal, engine
+from app.core.logging import setup_logging
 from app.core.errors import DrishtiError, drishti_error_handler, unhandled_error_handler
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+setup_logging()
 logger = logging.getLogger("drishti")
 
-# Idempotent table creation at import time keeps scripts/tests simple;
-# production deployments can migrate first and set this aside.
-Base.metadata.create_all(bind=engine)
+
+def _safe_db_label() -> str:
+    """Database kind only — never credentials — for startup logs."""
+    return "sqlite" if settings.is_sqlite else settings.database_url.split("://")[0]
+
+
+logger.info("Starting Drishti API (env=%s, db=%s)", settings.app_env, _safe_db_label())
+
+
+# Idempotent schema creation for DEVELOPMENT convenience only.
+# Production deployments must apply Alembic migrations instead
+# (alembic upgrade head) — see backend/alembic/.
+if settings.app_env != "production":
+    from app.db import create_all
+    create_all()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Seed the demo dataset when the database is empty.
+    from app.core.database import SessionLocal
     db = SessionLocal()
     try:
         if settings.demo_autoseed:
@@ -55,9 +70,27 @@ app.add_middleware(
 app.add_exception_handler(DrishtiError, drishti_error_handler)
 app.add_exception_handler(Exception, unhandled_error_handler)
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    """Pydantic/FastAPI validation failures in the standard error envelope."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Request validation failed.",
+                "details": {".".join(str(loc) for loc in e.get("loc", [])): e.get("msg")
+                            for e in exc.errors()},
+            }
+        },
+    )
+
+
 app.include_router(api_router)
 
 
 @app.get("/api/health")
-def health():
+def health_legacy():
+    """Legacy alias kept for existing clients."""
     return {"status": "ok", "app": "drishti", "env": settings.app_env}
