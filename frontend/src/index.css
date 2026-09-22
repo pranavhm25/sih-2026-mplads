@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-canvas text-ink antialiased;
+  }
+  body {
+    @apply font-sans text-[14px] leading-relaxed;
+  }
+  h1, h2, h3 {
+    @apply font-plex tracking-tight;
+  }
+}
+
+@layer components {
+  /* Section heading: typographic hierarchy over containers */
+  .section-title {
+    @apply font-plex text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint;
+  }
+  .rule-line {
+    @apply border-t border-rule;
+  }
+  /* Administrative table */
+  .ledger-table {
+    @apply w-full border-collapse text-[13px];
+  }
+  .ledger-table thead th {
+    @apply border-b border-ink/60 px-2 py-1.5 text-left font-plex text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-faint;
+  }
+  .ledger-table tbody td {
+    @apply border-b border-rule px-2 py-1.5 align-top;
+  }
+  .ledger-table tbody tr:hover {
+    @apply bg-accent-soft/60;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  .btn {
+    @apply inline-flex items-center gap-1.5 border border-ink/70 bg-paper px-3 py-1.5 font-plex text-[12.5px] font-medium text-ink transition-colors hover:bg-accent hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-white hover:bg-ink hover:border-ink;
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+  .field {
+    @apply border border-rule bg-paper px-2 py-1.5 text-[13px] text-ink focus:border-accent focus:outline-none;
+  }
+  .provenance-chip {
+    @apply inline-block border border-vermilion/50 bg-verms-soft px-2 py-0.5 font-plex text-[10.5px] font-semibold uppercase tracking-[0.12em] text-vermilion;
+  }
+}
+
+/* Signal stack bar (DESIGN.md §10) */
+.sigbar {
+  height: 10px;
+  background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 8px);
+}
