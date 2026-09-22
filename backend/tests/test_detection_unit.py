@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from app.core import constants as C
-from app.services.detection.duplicates import (
+from app.nlp.duplicate_candidates import (
     combined_score,
     cost_similarity,
     normalize_text,

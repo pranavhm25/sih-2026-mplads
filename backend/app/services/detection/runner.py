@@ -14,13 +14,13 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.constants import RunStatus
 from app.models import DetectionRun, Dataset, Project
+from app.ml import isolation_forest
+from app.nlp import duplicate_candidates
+from app.rules import engine as rules
 from app.services.detection import (
     benchmarking,
-    duplicates,
     fusion,
     metrics as metrics_svc,
-    ml_engine,
-    rules,
 )
 from app.services.quality.quality import run_quality_checks
 
@@ -62,10 +62,10 @@ def run_detection(db: Session, dataset: Dataset, today: date | None = None) -> D
         summary["rules"] = rules.run_rule_engine(db, projects, today)
 
         # 5. NLP duplicate candidates
-        summary["duplicates"] = duplicates.detect_duplicate_candidates(db, projects)
+        summary["duplicates"] = duplicate_candidates.detect_duplicate_candidates(db, projects)
 
         # 6. Isolation Forest
-        summary["ml"] = ml_engine.run_ml_engine(db, projects, today)
+        summary["ml"] = isolation_forest.run_ml_engine(db, projects, today)
 
         # 7. Evidence fusion → investigation priority per project
         priorities = fusion.compute_priorities(db, projects)
