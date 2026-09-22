@@ -36,7 +36,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>
   return res.json() as Promise<Envelope<T>>
 }
 
+export interface HealthData {
+  status: string
+  service: string
+}
+
 export const api = {
+  health: () => request<HealthData>('/health'),
   dashboard: () => request<DashboardData>('/dashboard/summary'),
   queue: (params: Record<string, string | undefined>) => {
     const qs = new URLSearchParams()

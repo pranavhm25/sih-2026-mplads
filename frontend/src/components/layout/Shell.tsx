@@ -5,6 +5,7 @@ const NAV = [
   { to: '/queue', label: 'Investigation Queue' },
   { to: '/cases', label: 'Cases' },
   { to: '/data', label: 'Data' },
+  { to: '/system', label: 'System status' },
 ]
 
 export default function Shell() {
