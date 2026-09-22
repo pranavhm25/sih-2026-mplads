@@ -40,10 +40,13 @@ The flagship demo work **MPL-10281** converges **five independent signals**: cos
 cd backend
 py -m pip install -r requirements.txt        # or pip3
 cp .env.example .env                          # optional; defaults work
+py -m alembic upgrade head                    # apply schema migrations
 py -m uvicorn app.main:app --reload --port 8000
 ```
 
-On first start the API seeds the deterministic synthetic demo dataset and runs the full detection pipeline automatically.
+In non-production environments tables are also created automatically at startup; production must use Alembic migrations. On first start the API seeds the deterministic synthetic demo dataset and runs the full detection pipeline automatically.
+
+Liveness probe: `GET /api/v1/health` → `{"status": "ok", "service": "drishti-api"}` (never touches the database).
 
 ### Frontend (port 5173)
 
@@ -58,8 +61,9 @@ Open http://localhost:5173. The dev server proxies `/api` to the backend.
 ### Tests
 
 ```bash
-cd backend && py -m pytest tests/ -q
-cd frontend && npm run build    # typechecks + bundles
+cd backend && py -m pytest tests/ -q          # 43 backend tests
+cd frontend && npm run test                   # vitest (health screen + smoke)
+cd frontend && npm run typecheck && npm run build
 ```
 
 ## Architecture
