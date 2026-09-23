@@ -76,6 +76,13 @@ Detection results should be tied to dataset, ruleset/model version and execution
 - Version detection outputs.
 - Record case transitions.
 
+### Git Workflow
+- Before making changes or performing other Git operations, check the working tree and pull the latest changes from the relevant base branch.
+- Never discard or overwrite existing user changes to make a pull succeed. Stop and resolve or ask for guidance if local changes or conflicts prevent a safe pull.
+- Create a new feature branch from the up-to-date base branch for every feature, fix or other requested change.
+- Commit and push after every meaningful implementation stage so progress is preserved remotely. Commits must contain only the changes for that stage and must not include secrets or unrelated user work.
+- After the feature is complete and validated, open a pull request from the feature branch and merge it through the pull request. Do not merge feature work directly into the base branch.
+
 ## 4. UI Rules
 
 ### Never build
