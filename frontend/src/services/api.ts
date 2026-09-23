@@ -21,7 +21,15 @@ import type {
   ValidationSummary,
 } from '../types/types'
 
-const BASE = '/api/v1'
+export const API_HOST = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+export const BASE = `${API_HOST}/api/v1`
+
+export function resolveApiUrl(path: string): string {
+  if (!path) return ''
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  return `${API_HOST}${normalized}`
+}
 
 const TOKEN_KEY = 'drishti.token'
 
@@ -98,11 +106,16 @@ export const api = {
   ) => request<Case>(`/cases/${id}/feedback`, { method: 'POST', body: JSON.stringify(payload) }),
   listCases: () => request<Case[]>('/cases'),
   getCase: (id: string) => request<Case>(`/cases/${id}`),
-  generateReport: (caseId: string) =>
-    request<{ report: { id: string; report_number: string; generated_at: string }; download_url: string }>(
+  generateReport: async (caseId: string) => {
+    const res = await request<{ report: { id: string; report_number: string; generated_at: string }; download_url: string }>(
       `/cases/${caseId}/report`,
       { method: 'POST' },
-    ),
+    )
+    if (res.data && res.data.download_url) {
+      res.data.download_url = resolveApiUrl(res.data.download_url)
+    }
+    return res
+  },
   demoSeed: () =>
     request<{
       dataset: string
@@ -144,7 +157,10 @@ export const api = {
     const form = new FormData()
     form.append('file', file)
     const qs = datasetType && datasetType !== 'AUTO_DETECT' ? `?dataset_type=${datasetType}` : ''
-    return fetch(`${BASE}/datasets/import${qs}`, { method: 'POST', body: form }).then(
+    const token = getStoredToken()
+    const headers: Record<string, string> = {}
+    if (token) headers.Authorization = `Bearer ${token}`
+    return fetch(`${BASE}/datasets/import${qs}`, { method: 'POST', headers, body: form }).then(
       async (res) => {
         if (!res.ok) {
           let message = `Import failed (${res.status})`

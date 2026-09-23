@@ -55,7 +55,7 @@ class Dataset(Base):
     quality_summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     # --- Prompt-3 provenance extensions -------------------------------------
-    dataset_type: Mapped[str] = mapped_column(String(40), default="WORK_LEVEL")
+    dataset_type: Mapped[str] = mapped_column(String(40), default="WORK_LEVEL", server_default="WORK_LEVEL")
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     retrieved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     file_name: Mapped[str | None] = mapped_column(String(255), nullable=True)

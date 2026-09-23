@@ -26,12 +26,22 @@ def _safe_db_label() -> str:
 logger.info("Starting Drishti API (env=%s, db=%s)", settings.app_env, _safe_db_label())
 
 
-# Idempotent schema creation for DEVELOPMENT convenience only.
-# Production deployments must apply Alembic migrations instead
-# (alembic upgrade head) — see backend/alembic/.
+# Initialize / migrate schema idempotently on startup.
 if settings.app_env != "production":
     from app.db import create_all
     create_all()
+else:
+    try:
+        from alembic import command
+        from alembic.config import Config
+        from app.core.config import BASE_DIR
+        alembic_cfg = Config(str(BASE_DIR / "alembic.ini"))
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic migrations applied successfully.")
+    except Exception as exc:
+        logger.warning("Could not auto-apply Alembic migrations, falling back to create_all: %s", exc)
+        from app.db import create_all
+        create_all()
 
 
 @asynccontextmanager

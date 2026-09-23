@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # Backlog #2 — auth. Production MUST set a real secret; the default only
     # exists so the demo stack boots. Warned about at startup in production.
     secret_key: str = "change-me-in-production"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:5317,http://localhost:5199,http://127.0.0.1:5317,http://127.0.0.1:5199"
 
     model_version: str = "iforest-v1"
     ruleset_version: str = "rules-v1"
@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
+        if self.cors_origins.strip() == "*":
+            return ["*"]
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
 
