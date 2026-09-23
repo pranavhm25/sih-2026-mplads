@@ -137,16 +137,16 @@ Open http://localhost:5317. The dev server proxies `/api` to the backend.
 ### Option 3: Free Cloud Deployment (Vercel + Render)
 
 Deploy the entire platform online 100% free of charge:
-- **Backend on Render**: Auto-provisions using the included [render.yaml](file:///home/venkatsaigs/Projects/sih-2026-mplads/render.yaml) blueprint.
+- **Backend on Render**: Auto-provisions using the included [render.yaml](render.yaml) blueprint.
 - **Frontend on Vercel**: Connect your GitHub repository, configure `VITE_API_URL` to point to Render, and deploy.
-- **Detailed Step-by-Step Instructions**: See [Free Hosting Guide](file:///home/venkatsaigs/Projects/sih-2026-mplads/docs/FREE_HOSTING_GUIDE.md).
+- **Detailed Step-by-Step Instructions**: See the [Free Hosting Guide](docs/FREE_HOSTING_GUIDE.md) or the [30-Minute Beginner Quickstart](docs/HOSTING_QUICKSTART.md).
 
 ---
 
 ### Tests
 
 ```bash
-cd backend && py -m pytest tests/ -q          # 43 backend tests
+cd backend && py -m pytest tests/ -q          # 100 backend tests
 cd frontend && npm run test                   # vitest (health screen + smoke)
 cd frontend && npm run typecheck && npm run build
 ```

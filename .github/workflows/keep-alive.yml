@@ -1,0 +1,56 @@
+# Optional: Keep the Render free backend awake 24/7 (no cold starts).
+#
+# This workflow is DISABLED by default — nothing runs until you add a secret.
+#
+# ── How to enable ─────────────────────────────────────────────────────────
+# 1. GitHub repo → Settings → Secrets and variables → Actions
+# 2. New repository secret:
+#       Name:  RENDER_BACKEND_URL
+#       Value: https://mplads-drishti-codeholics-api.onrender.com   (no trailing slash)
+# 3. Done — from the next push the workflow runs every 10 minutes.
+#
+# To turn it OFF later: delete the secret (runs then fail harmlessly), or
+# disable the workflow: Actions tab → Keep-alive → ⋯ → Disable workflow.
+#
+# ── Cost trade-off ────────────────────────────────────────────────────────
+# 24/7 keep-alive consumes ~744 of Render's 750 monthly FREE instance-hours.
+# Fine for exactly one always-on free service; do NOT enable if your Render
+# workspace also runs other free services (they'd get suspended mid-month).
+# Never shorten the cron interval below 10 minutes.
+name: Keep-alive (Render backend)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:          # allows manual runs from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health endpoint
+        env:
+          BACKEND_URL: ${{ secrets.RENDER_BACKEND_URL }}
+        run: |
+          if [ -z "$BACKEND_URL" ]; then
+            echo "RENDER_BACKEND_URL secret not set — nothing to do."
+            exit 0
+          fi
+          echo "Pinging $BACKEND_URL/api/v1/health ..."
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 90 \
+            "$BACKEND_URL/api/v1/health") || code=000
+          echo "HTTP status: $code"
+          # 000 = network timeout (backend likely still waking); tolerate it.
+          if [ "$code" = "200" ]; then
+            echo "Backend is awake."
+          else
+            echo "::warning::Backend responded with $code (may still be waking up)."
+          fi

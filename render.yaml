@@ -1,14 +1,28 @@
 # Render.com Blueprint for Drishti Backend
 # Allows 1-click free deployment via Render Dashboard -> Blueprints
+# NOTE: the service name IS the public URL (<name>.onrender.com), and Render
+# does not allow renaming subdomains after creation. If this name is taken,
+# Render appends random characters — pick another clean name at creation time.
 services:
   - type: web
-    name: drishti-backend
+    name: mplads-drishti-codeholics-api
     env: python
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
+    autoDeploy: true
+    # Free instance-hours are precious: never burn them on preview instances
+    # for pull requests.
+    buildFilter:
+      ignoredPaths:
+        - frontend/**
+        - docs/**
+        - dataset/**
+        - "*.md"
+        - "*.pptx"
+    pullRequestPreviewsEnabled: no
     envVars:
       - key: APP_ENV
         value: production

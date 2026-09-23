@@ -24,3 +24,7 @@ frontend/dist/
 .~lock.*#
 .DS_Store
 Thumbs.db
+
+# Local tooling & datasets (kept on disk, not tracked)
+.freebuff/
+dataset/
