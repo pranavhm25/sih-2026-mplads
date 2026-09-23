@@ -14,7 +14,6 @@ from app.core.config import settings
 from app.data.demo_data import REFERENCE_DATE, build_demo_rows
 from app.models import Dataset, Officer, Project
 from app.services.detection.runner import run_detection
-from app.services.ingestion.ingestion import ingest_rows
 
 logger = logging.getLogger("drishti.bootstrap")
 
@@ -52,17 +51,104 @@ def seed_demo_if_empty(db: Session) -> Dataset | None:
 
     logger.info("Seeding deterministic demo dataset…")
     rows = build_demo_rows()
-    dataset = ingest_rows(
-        db,
-        rows,
-        name="SIH 2026 demo dataset (synthetic)",
-        source_label="Controlled synthetic demo — not official MPLADS records",
-        version="demo-01",
-        is_synthetic=True,
-    )
+    dataset = _ingest_demo_rows(db, rows)
     run_detection(db, dataset, today=REFERENCE_DATE)
     logger.info("Demo dataset %s ingested (%d works) and detection completed.",
                 dataset.id, dataset.row_count)
+    return dataset
+
+
+def _ingest_demo_rows(db: Session, rows: list[dict]) -> Dataset:
+    """Persist demo rows as a synthetic Dataset (is_synthetic=True)."""
+    from datetime import datetime, timezone
+
+    from app.core.constants import DatasetSourceType, DatasetType
+    from app.models import ValidationIssue
+    from app.services.ingestion.ingestion import (
+        map_columns, normalize_row, _missing_mandatory,
+    )
+
+    dataset = Dataset(
+        name="SIH 2026 demo dataset (synthetic)",
+        dataset_type=DatasetType.WORK_LEVEL.value,
+        source_type=DatasetSourceType.SYNTHETIC_FIXTURE.value,
+        source_label="Controlled synthetic demo — not official MPLADS records",
+        version="demo-01",
+        is_synthetic=True,
+        file_name="demo_data.py (deterministic fixture)",
+        file_hash=None,
+        retrieved_at=datetime.now(timezone.utc),
+        row_count=0,
+        quality_status="PENDING",
+    )
+    db.add(dataset)
+    db.flush()
+
+    valid_projects: list[Project] = []
+    rejected = 0
+    for raw in rows:
+        mapped = map_columns(raw)
+        clean = normalize_row(mapped)
+        missing = _missing_mandatory(clean)
+        if missing:
+            rejected += 1
+            for f in missing:
+                db.add(ValidationIssue(
+                    dataset_id=dataset.id, row_number=None, field=f,
+                    rule="missing_mandatory", severity="ERROR",
+                    message=f"Demo row rejected: missing mandatory field '{f}'.",
+                    observed_value=None,
+                ))
+            continue
+
+        from app.models import Project as P
+
+        valid_projects.append(P(
+            dataset_id=dataset.id,
+            work_id=str(clean["work_id"]),
+            mp_name=clean.get("mp_name"),
+            constituency=clean.get("constituency"),
+            state=str(clean["state"]),
+            district=str(clean["district"]),
+            location_text=clean.get("location_text"),
+            latitude=clean.get("latitude"),
+            longitude=clean.get("longitude"),
+            category=clean.get("category"),
+            sector=clean.get("sector"),
+            description=str(clean["description"]),
+            estimated_cost=clean["estimated_cost"],
+            sanctioned_cost=clean["sanctioned_cost"],
+            expenditure=clean.get("expenditure"),
+            financial_progress=clean["financial_progress"],
+            physical_progress=clean["physical_progress"],
+            sanction_date=clean.get("sanction_date"),
+            start_date=clean.get("start_date"),
+            completion_date=clean.get("completion_date"),
+            status=clean.get("status") or "Unknown",
+            implementing_agency=clean.get("implementing_agency"),
+            contractor_name=clean.get("contractor_name"),
+            expected_duration_days=clean.get("expected_duration_days"),
+        ))
+
+    db.add_all(valid_projects)
+    dataset.row_count = len(valid_projects)
+    dataset.quality_status = (
+        "GOOD" if rejected == 0 else "ACCEPTABLE"
+    )
+    dataset.quality_summary = {
+        "total_rows": len(rows),
+        "valid_rows": len(valid_projects),
+        "warning_rows": 0,
+        "error_rows": rejected,
+        "reasons": (
+            [f"{rejected} demo record(s) with missing mandatory fields"]
+            if rejected else []
+        ),
+        "missing_field_counts": {},
+        "invalid_field_counts": {},
+        "duplicate_counts": {},
+    }
+    db.commit()
     return dataset
 
 
