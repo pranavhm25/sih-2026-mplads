@@ -38,6 +38,7 @@ export const SIGNAL_LABELS: Record<string, string> = {
   ML_ANOMALY: 'ML unusual',
   DATA_QUALITY: 'Data quality',
   AGENCY_CONCENTRATION: 'Agency concentration',
+  COMPLIANCE: 'Compliance indicator',
 }
 
 export function signalLabel(t: string): string {

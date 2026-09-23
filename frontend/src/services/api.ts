@@ -1,5 +1,8 @@
 // Central API client. Components never call fetch directly (AGENTS_RULES §3).
 import type {
+  AlertDigestData,
+  AuditEventRow,
+  AuditVerifyReport,
   Case,
   DashboardData,
   DatasetListResponse,
@@ -8,12 +11,28 @@ import type {
   Envelope,
   FixtureInfo,
   ImportSummary,
+  AuthOfficer,
+  LoginResponse,
   Officer,
   ProjectDetail,
   QueueResponse,
+  StakeholderSummary,
+  TrendsData,
+  ValidationSummary,
 } from '../types/types'
 
 const BASE = '/api/v1'
+
+const TOKEN_KEY = 'drishti.token'
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function storeToken(token: string | null): void {
+  if (token) localStorage.setItem(TOKEN_KEY, token)
+  else localStorage.removeItem(TOKEN_KEY)
+}
 
 class ApiError extends Error {
   status: number
@@ -26,8 +45,11 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>> {
+  const token = getStoredToken()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers.Authorization = `Bearer ${token}`
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...init,
   })
   if (!res.ok) {
@@ -97,6 +119,25 @@ export const api = {
   datasetRecords: (id: string, limit = 50, offset = 0) =>
     request<DatasetRecords>(`/datasets/${id}/records?limit=${limit}&offset=${offset}`),
   fixtures: () => request<{ fixtures: FixtureInfo[] }>('/datasets/fixtures'),
+  // Backlog: auth + audit chain
+  login: (email: string, password: string) =>
+    request<LoginResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+  authMe: () => request<AuthOfficer>('/auth/me'),
+  logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+  auditVerify: () => request<AuditVerifyReport>('/audit/verify'),
+  auditEvents: (limit = 50) => request<AuditEventRow[]>(`/audit/events?limit=${limit}`),
+  stakeholderSummary: () => request<StakeholderSummary>('/stakeholder/summary'),
+  validationSummary: () => request<ValidationSummary>('/validation/summary'),
+  alertDigest: () => request<AlertDigestData>('/alerts/digest'),
+  ackDigest: () =>
+    request<{ role: string; last_seen_seq: number; acked_at: string }>(
+      '/alerts/digest/ack',
+      { method: 'POST' },
+    ),
+  trends: () => request<TrendsData>('/trends'),
   ingestFixture: (name: string) =>
     request<ImportSummary>(`/datasets/fixtures/${name}/ingest`, { method: 'POST' }),
   importFile: (file: File, datasetType?: string): Promise<Envelope<ImportSummary>> => {

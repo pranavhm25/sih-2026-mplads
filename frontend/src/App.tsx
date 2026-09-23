@@ -5,6 +5,7 @@ import InvestigationQueue from './pages/InvestigationQueue'
 import ProjectIntelligence from './pages/ProjectIntelligence'
 import { CaseDetail, CasesList } from './pages/Cases'
 import DataScreen from './pages/Data'
+import Stakeholders from './pages/Stakeholders'
 import SystemStatus from './pages/SystemStatus'
 
 const router = createBrowserRouter([
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
       { path: 'cases', element: <CasesList /> },
       { path: 'cases/:id', element: <CaseDetail /> },
       { path: 'data', element: <DataScreen /> },
+      { path: 'stakeholders', element: <Stakeholders /> },
       { path: 'system', element: <SystemStatus /> },
     ],
   },

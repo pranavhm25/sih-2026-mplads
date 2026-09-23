@@ -290,3 +290,112 @@ export interface QueueResponse {
   offset: number
   limit: number
 }
+
+// --- Backlog: security pack + stakeholder views ---------------------------
+
+export interface AuthOfficer {
+  id: string
+  name: string
+  email: string
+  role: string
+  stakeholder_role: string | null
+  constituency: string | null
+  state: string | null
+  district: string | null
+}
+
+export interface LoginResponse {
+  token: string
+  officer: AuthOfficer
+}
+
+export interface AuditVerifyReport {
+  valid: boolean
+  broken_at_seq: number | null
+  reason: string | null
+  events_checked: number
+  chain_tip?: string
+}
+
+export interface AuditEventRow {
+  seq: number
+  action: string
+  actor_id: string | null
+  entity_type: string | null
+  entity_id: string | null
+  payload: Record<string, unknown> | null
+  prev_hash: string
+  entry_hash: string
+  created_at: string
+}
+
+export interface StakeholderSummary {
+  scope: { role: string; label: string; note: string }
+  works: { total: number; by_status: Record<string, number> }
+  signals: {
+    total: number
+    by_type: Record<string, number>
+    by_severity: Record<string, number>
+  }
+  cases: { total: number; open: number; by_status: Record<string, number> }
+  mp_headlines: { work: string; headline: string; severity: string; note: string }[] | null
+  district_attention: { district: string; high_signals: number }[] | null
+}
+
+export interface ValidationSummary {
+  feedback: {
+    confirmed_concern: number
+    false_positive: number
+    needs_verification: number
+    precision: number | null
+    note: string
+  }
+  flag_rate: {
+    flagged_works: number    total_works: number
+    rate: number | null
+    note: string
+  }
+  signals_by_type: Record<string, number>
+  quantified_target: string
+}
+
+export interface AlertDigestData {
+  role: string
+  watermark_seq: number
+  floor_severity: string
+  new_signals: {
+    work: string
+    district: string
+    signal_type: string
+    severity: string
+    title: string
+    created_at: string
+  }[]
+  cases_moved: {
+    case_number: string
+    status: string
+    priority: string
+    updated_at: string
+  }[]
+  counts: { new_signals: number; cases_moved: number }
+  generated_at: string
+}
+
+export interface TrendsData {
+  series: {
+    dataset_id: string
+    dataset_name: string
+    ingested_at: string | null
+    is_synthetic: boolean
+    house: string | null
+    allocated_limit: number | null
+    works_recommended: number | null
+    works_sanctioned: number | null
+    works_completed: number | null
+    expenditure: number | null
+    monetary_unit: string
+    as_of_date: string | null
+  }[]
+  completion_rates: { label: string; rate: number; is_synthetic: boolean }[] | null
+  limitation: string
+}
