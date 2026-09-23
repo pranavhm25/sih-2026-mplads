@@ -18,8 +18,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [*] Starting containers with Docker Compose...
-echo [*] Once started, access the UI at: http://localhost:5173
-echo [*] Backend API docs at: http://localhost:8000/docs
+echo [*] Once started, access the UI at: http://localhost:5317
+echo [*] Backend API docs at: http://localhost:8317/docs
 echo.
 
 docker compose up --build %*

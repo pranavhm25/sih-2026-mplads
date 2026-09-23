@@ -5,8 +5,8 @@ Write-Host ""
 
 if (Get-Command docker -ErrorAction SilentlyContinue) {
     Write-Host "[✓] Docker detected." -ForegroundColor Green
-    Write-Host "[*] Launching services at http://localhost:5173 ..." -ForegroundColor Yellow
-    Write-Host "[*] Backend API docs at http://localhost:8000/docs" -ForegroundColor Yellow
+    Write-Host "[*] Launching services at http://localhost:5317 ..." -ForegroundColor Yellow
+    Write-Host "[*] Backend API docs at http://localhost:8317/docs" -ForegroundColor Yellow
     Write-Host ""
     docker compose up --build
 } else {

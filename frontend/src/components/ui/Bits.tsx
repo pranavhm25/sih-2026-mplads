@@ -1,7 +1,6 @@
 // Small shared primitives. A component exists only when it improves
 // information hierarchy (AGENTS_RULES §5).
-import type { Priority, ProjectSummary } from '../../types/types'
-import { PRIORITY_CLASS, formatINR, signalLabel } from '../../lib/format'
+import { PRIORITY_CLASS, signalLabel } from '../../lib/format'
 
 export function PriorityMark({ level, score }: { level: string; score?: number }) {
   const bars = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }[level] ?? 0
@@ -33,29 +32,6 @@ export function SignalChips({ types }: { types: string[] }) {
         </span>
       ))}
     </span>
-  )
-}
-
-export function SummaryStrip({
-  items,
-}: {
-  items: { label: string; value: string; tone?: 'critical' | 'normal' }[]
-}) {
-  return (
-    <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2 border-y border-ink/60 py-3">
-      {items.map((it) => (
-        <div key={it.label} className="flex items-baseline gap-2">
-          <span className="section-title">{it.label}</span>
-          <span
-            className={`num text-[22px] font-semibold leading-none ${
-              it.tone === 'critical' ? 'text-vermilion' : 'text-ink'
-            }`}
-          >
-            {it.value}
-          </span>
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -104,17 +80,3 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   )
 }
 
-export function ProjectCell({ p }: { p: ProjectSummary }) {
-  return (
-    <div className="min-w-0">
-      <p className="truncate font-medium text-ink">{p.description}</p>
-      <p className="text-meta text-ink-faint">
-        {p.district} · {p.category ?? 'Uncategorised'} · {formatINR(p.sanctioned_cost)}
-      </p>
-    </div>
-  )
-}
-
-export function priorityOf(p: ProjectSummary): Priority | null {
-  return p.priority ?? null
-}
