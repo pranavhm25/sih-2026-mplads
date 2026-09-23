@@ -394,6 +394,83 @@ generated_at         TIMESTAMP
 report_version       VARCHAR
 ```
 
+## 18a. Backlog additions — security, stakeholder & optional data layers
+
+### audit_event (tamper-evident chain)
+
+```text
+id            UUID PK
+seq           INTEGER UNIQUE   -- chain position, 1..n
+actor_id      UUID NULL
+action        VARCHAR(80)      -- AUDIT_LOGIN, CASE_OPENED, REPORT_GENERATED, ...
+entity_type   VARCHAR NULL
+entity_id     UUID NULL
+payload       JSON NULL
+prev_hash     CHAR(64)         -- previous entry's hash (genesis = 64 zeros)
+entry_hash    CHAR(64)         -- sha256(canonical event incl. prev_hash)
+created_at    TIMESTAMP
+```
+
+Integrity rule: `entry_hash = sha256(seq ‖ prev_hash ‖ canonical_json(event))`.
+Verification (`GET /api/v1/audit/verify`) re-walks the chain and reports the
+first broken seq/reason. Auth: PBKDF2 `password_hash` + HMAC session tokens
+on `officer`; `stakeholder_role`/`constituency`/`state` scope RBAC.
+
+### alert_digest
+
+```text
+id               UUID PK
+role             VARCHAR(40)   -- one watermark per stakeholder role
+last_seen_seq    INTEGER       -- audit-seq watermark
+last_generated_at TIMESTAMP NULL
+created_at       TIMESTAMP
+```
+
+### payment_record (optional layer — only when a source provides payments)
+
+```text
+id             UUID PK
+project_id     UUID FK → project
+dataset_id     UUID FK → dataset
+payment_ref    VARCHAR NULL
+amount         NUMERIC(14,2)
+currency       VARCHAR(10) DEFAULT 'INR'
+unit           VARCHAR(10) DEFAULT 'RUPEE'
+paid_on        DATE NULL
+payee          VARCHAR NULL
+stage          VARCHAR NULL
+source_row_number INTEGER NULL
+```
+
+### asset_record (optional layer — asset verification status)
+
+```text
+id                   UUID PK
+project_id           UUID FK → project
+dataset_id           UUID FK → dataset
+asset_description    TEXT NULL
+geo_tagged_photo_ref VARCHAR NULL
+verification_status  VARCHAR NULL
+verified_at          TIMESTAMP NULL
+source_row_number    INTEGER NULL
+```
+
+### officer extensions
+
+```text
+stakeholder_role  VARCHAR NULL  -- MP | DISTRICT_AUTHORITY | STATE_NODAL | MINISTRY | ADMIN
+constituency      VARCHAR NULL
+state             VARCHAR NULL
+password_hash     VARCHAR NULL  -- pbkdf2_sha256$iterations$salt$hash
+```
+
+New signal type: `COMPLIANCE` (categorical guideline matching with citation
+evidence; source_type=RULE, weight 3.5 in fusion). New API surface:
+`/api/v1/auth/*`, `/api/v1/audit/*`, `/api/v1/stakeholder/summary`,
+`/api/v1/validation/summary`, `/api/v1/alerts/digest`, `/api/v1/trends`.
+
+Migration: `c4d5e6f7a8b9` (backlog security/stakeholder tables).
+
 ## 19. Recommended Indexes
 
 - projects(work_id, dataset_id)

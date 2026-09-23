@@ -261,3 +261,44 @@ DEGRADED / FAILED) with plain-language reasons — never an opaque score.
 Validation issues are preserved with row, field, rule, severity, message
 and observed value; ERROR rows are excluded from import but never silently
 discarded.
+
+
+## Backlog Implementation (2026-09-23)
+
+All 12 backlog items implemented (docs/ROADMAP_BACKLOG.md):
+
+- **Compliance rule pack** (`app/rules/compliance.py`): deterministic keyword
+  matching of work descriptions / implementing agencies against MPLADS
+  guideline reference categories (religious structures, memorials, private
+  property, unpermitted repair, office buildings, trust payees). Every
+  signal carries its guideline citation as evidence; language is
+  "compliance indicator", never fraud. SignalType.COMPLIANCE, fusion weight 3.5.
+- **Security pack** (`app/core/security.py`, `app/services/auth.py`,
+  `app/api/v1/auth.py`): PBKDF2 password hashing, HMAC-signed session tokens,
+  login/logout/me endpoints, demo stakeholder accounts
+  (ministry/snl/district/mp @drishti.demo, password drishti-demo).
+- **Tamper-evident audit chain** (`audit_event` table): sha256 hash-linked
+  events for logins and every case mutation + report generation;
+  `GET /api/v1/audit/verify` pinpoints tampering (seq, reason).
+  Case reports embed a SHA-256 evidence hash manifest.
+- **Stakeholder views** (`/api/v1/stakeholder/summary` + frontend
+  Stakeholders page): MP (own constituency, plain language), District (own
+  works/cases), State Nodal (own state), Ministry (national + district
+  attention). Unauthenticated calls get counts only, never another role's slice.
+- **Validation story** (`/api/v1/validation/summary`): reviewer precision
+  from case resolutions (null until feedback exists), flag-rate
+  transparency, quantified target string.
+- **Alert digest** (`/api/v1/alerts/digest` + ack): per-role watermark,
+  high/critical floor for Ministry, critical-only for District/MP.
+- **Trends** (`/api/v1/trends`): from imported SCHEME_AGGREGATE datasets
+  only; carries the pre-2023-24 limitation note.
+- **Payments/assets** (optional layers): `payment_record`, `asset_record`
+  tables + registry fields; rows exist only when a source provides them.
+- **Benchmark**: `backend/scripts/benchmark_scale.py` → 110k rows at
+  ~1,070 rows/s (docs/benchmark_result.json).
+- **Pitch/governance docs**: docs/PITCH_DELTAS.md, docs/SUSTAINABILITY.md.
+- **Demo hardening**: XLSX fixture variants; migration c4d5e6f7a8b9
+  (verified up/down).
+
+Auth keys are env-driven (SECRET_KEY, SESSION_TTL_HOURS,
+DEMO_ACCOUNTS_ENABLED) — see .env.example.
