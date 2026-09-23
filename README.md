@@ -2,7 +2,7 @@
 
 **SIH 2026 · Problem Statement 26102 · MoSPI · Data Informatics & Innovation Division (DIID) · Smart Automation**
 
-Drishti is an **investigation-first** decision-support platform for MPLADS. It ingests work-level data, detects potential irregularities, explains the evidence behind every signal, prioritizes works for human investigation, and manages the resulting cases through to audit-ready reports.
+Drishti is an **investigation-first** decision-support platform for MPLADS. It ingests official data, detects potential irregularities, explains the evidence behind every signal, prioritizes works for human investigation, and manages the resulting cases through to audit-ready reports.
 
 > **Detect → Explain → Prioritize → Investigate → Document → Learn**
 
@@ -20,6 +20,32 @@ Drishti **never** declares a project fraudulent. It surfaces potential irregular
 
 The flagship demo work **MPL-10281** converges **five independent signals**: cost anomaly (+~60% vs peer median), financial/physical gap (84% vs 32%), delay (~145d beyond expected), duplicate candidate (91% text similarity, ~43m away) and an Isolation Forest unusual-pattern score. An **agency concentration** cluster is showcased in Belagavi (>80% sanctioned value held by one agency).
 
+## Official data ingestion (Prompt 3)
+
+The **Data** screen imports official CSV/XLSX exports from the MPLADS
+e-SAKSHI dashboard. Supported dataset types:
+
+| Type | Source | Notes |
+|------|--------|-------|
+| `MP_ALLOCATION` | Lok Sabha / Rajya Sabha allocation exports | Type detected from source columns; house-specific fields stay NULL when absent |
+| `SCHEME_AGGREGATE` | Dashboard aggregate statistics | Monetary values keep their display unit (Crore) |
+| `WORK_LEVEL` | Future official work-level datasets | Extensible; detection pipeline runs automatically on import |
+| `SYNTHETIC_FIXTURE` | Bundled evaluation fixtures | Always labelled DEMO DATA — never official |
+
+Per-work analytical fields (per-work sanctioned cost, expenditure,
+progress percentages, dates, coordinates, agency) are **not currently
+exposed** by the observed public dashboard/exports. Drishti stores NULL
+for absent fields, never fabricates them, and reports them as unavailable.
+
+The import pipeline: parse → detect schema → map columns → normalize
+(explicit currency/unit handling: raw rupees vs Crore) → validate per row
+(row, field, rule, severity, message, observed value) → persist valid rows
+(**partial validity**: ERROR rows excluded but preserved in the validation
+issue table) → deterministic quality status (GOOD / ACCEPTABLE / DEGRADED /
+FAILED) with plain-language reasons. Duplicate uploads (same SHA-256) are
+rejected. One-click synthetic fixtures exercise the whole pipeline for
+evaluation.
+
 ## Stack
 
 | Layer     | Tech |
@@ -30,7 +56,7 @@ The flagship demo work **MPL-10281** converges **five independent signals**: cos
 | ML        | scikit-learn Isolation Forest (unsupervised unusualness only) |
 | NLP       | TF-IDF + cosine similarity duplicate candidates |
 | Reports   | ReportLab PDF |
-| Tests     | pytest (50 backend tests: rules, fusion, duplicates, ML, agency concentration, ingestion, quality, API, cases, reports) |
+| Tests     | pytest (100 backend tests: official ingestion, quality, rules, fusion, duplicates, ML, agency concentration, API, cases, reports) |
 
 ## Quick start
 

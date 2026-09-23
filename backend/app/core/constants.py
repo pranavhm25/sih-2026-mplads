@@ -71,6 +71,38 @@ class DatasetStatus(StrEnum):
     INVALID = "INVALID"
 
 
+class DatasetType(StrEnum):
+    """What a dataset contains (Prompt-3 §7). MP allocation rows are NOT
+    works; keeping types explicit keeps records type-safe end to end."""
+
+    MP_ALLOCATION = "MP_ALLOCATION"
+    SCHEME_AGGREGATE = "SCHEME_AGGREGATE"
+    WORK_LEVEL = "WORK_LEVEL"
+    OTHER_OFFICIAL_EXPORT = "OTHER_OFFICIAL_EXPORT"
+    SYNTHETIC_FIXTURE = "SYNTHETIC_FIXTURE"
+
+
+class DatasetSourceType(StrEnum):
+    """Where a dataset came from (Prompt-3 §6 source hierarchy).
+
+    OFFICIAL_* datasets are real MPLADS data; SYNTHETIC_FIXTURE is a
+    development-only fixture that must never be presented as official.
+    """
+
+    OFFICIAL_PUBLIC_DASHBOARD = "OFFICIAL_PUBLIC_DASHBOARD"
+    OFFICIAL_FILE_UPLOAD = "OFFICIAL_FILE_UPLOAD"
+    OFFICIAL_DATASET_API = "OFFICIAL_DATASET_API"
+    SYNTHETIC_FIXTURE = "SYNTHETIC_FIXTURE"
+
+
+class IssueSeverity(StrEnum):
+    """Severity of an ingestion validation issue (Prompt-3 §23)."""
+
+    ERROR = "ERROR"
+    WARNING = "WARNING"
+    INFO = "INFO"
+
+
 class RunStatus(StrEnum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
@@ -155,3 +187,19 @@ AGENCY_SHARE_TRIGGER_PCT = 40.0  # % of district sanctioned value held by a sing
 AGENCY_SHARE_HIGH_PCT = 60.0
 AGENCY_MIN_DISTRICT_WORKS = 4  # Minimum works in district to evaluate concentration
 AGENCY_MIN_WORKS = 2  # Minimum works held by agency in district to trigger
+
+# ---------------------------------------------------------------------------
+# Data-quality scale (Prompt-3 §28/§29): deterministic, documented states —
+# never an opaque score. error_rate = error rows / total rows, warn_rate likewise.
+# ---------------------------------------------------------------------------
+QUALITY_ERROR_RATE_ACCEPTABLE = 0.02   # <= 2% errors → GOOD/ACCEPTABLE
+QUALITY_ERROR_RATE_DEGRADED = 0.10     # <= 10% errors → ACCEPTABLE/DEGRADED
+QUALITY_WARN_RATE_DEGRADED = 0.15      # heavy warnings degrade GOOD → ACCEPTABLE
+
+# Uploaded files larger than this are rejected outright (bytes).
+MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024
+
+# MP allocation amounts are raw rupees in official exports; amounts below
+# this are implausible for an MPLADS annual entitlement and flag a WARNING.
+MP_ALLOCATION_MIN_PLAUSIBLE_INR = 100000  # ₹1 lakh
+

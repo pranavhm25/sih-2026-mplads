@@ -236,3 +236,28 @@ OFFICER FEEDBACK
 ## Source-of-Truth Rule
 
 This file records the stable product decisions for the project. If a later implementation decision conflicts with this memory, explicitly evaluate the trade-off before changing the core investigation-first concept.
+
+## Official Source Reality (Prompt 3)
+
+The MPLADS e-SAKSHI public dashboard currently exposes:
+
+- Per-house dashboard aggregates: Allocated Limit, Amount Consented for
+  Calamity, Works Recommended / Sanctioned / Completed, Expenditure on
+  Completed and Ongoing Works.
+- Allocation exports — Lok Sabha: Sr. No. | State | Hon'ble Members of
+  Parliament | Constituency | Allocated Amount (₹). Rajya Sabha: same plus
+  Elected/Nominated, without Constituency.
+- Per-work analytical fields (sanctioned cost, expenditure, progress,
+  dates, coordinates, agency) are NOT currently exposed. Drishti stores
+  NULL for absent fields, never fabricates them, and keeps the WORK_LEVEL
+  ingestion path extensible for future official datasets.
+
+Dataset types: MP_ALLOCATION, SCHEME_AGGREGATE, WORK_LEVEL,
+OTHER_OFFICIAL_EXPORT, SYNTHETIC_FIXTURE. An MP allocation row is never
+reshaped into a work record. Monetary values keep their source unit
+(RUPEE / LAKH / CRORE); comparison across units requires explicit
+conversion. Quality states are deterministic (GOOD / ACCEPTABLE /
+DEGRADED / FAILED) with plain-language reasons — never an opaque score.
+Validation issues are preserved with row, field, rule, severity, message
+and observed value; ERROR rows are excluded from import but never silently
+discarded.

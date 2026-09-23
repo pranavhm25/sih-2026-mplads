@@ -203,20 +203,47 @@ This is the foundation of explainability.
 
 ## 7. Data Flow
 
-1. Import dataset.
-2. Store source metadata.
-3. Normalize records.
-4. Run quality validation.
-5. Calculate derived features.
-6. Execute rule, ML and NLP detectors.
-7. Build peer groups.
-8. Fuse signals.
-9. Persist investigation priority.
-10. Display in Command Center and queue.
-11. Create case from a project.
-12. Record officer actions.
-13. Generate report.
-14. Capture feedback.
+1. Import dataset (CSV/XLSX upload; type detected deterministically from
+   source columns or forced via `dataset_type`).
+2. Store source metadata and provenance (source name/type, file name,
+   SHA-256 hash, detected column mapping, retrieval timestamp).
+3. Normalize records per dataset type (MP allocation / scheme aggregate /
+   work-level) with explicit unit handling for monetary values.
+4. Run per-row validation; record every issue (row, field, rule, severity,
+   message, observed value). ERROR rows are excluded from persistence but
+   preserved in `validation_issue`; WARNING/INFO rows import alongside
+   their issues (partial validity).
+5. Compute the deterministic quality status (GOOD / ACCEPTABLE / DEGRADED /
+   FAILED) with plain-language reasons.
+6. For work-level datasets: calculate derived features, execute rule, ML
+   and NLP detectors, build peer groups, fuse signals, persist
+   investigation priority.
+7. Display datasets, quality reports and type-safe records in the Data
+   screen; MP allocation rows are never reshaped into works.
+8. Display intelligence surfaces (Command Center, queue, project
+   intelligence) for work-level data.
+9. Create case from a project.
+10. Record officer actions.
+11. Generate report.
+12. Capture feedback.
+
+## 7a. Ingestion Pipeline (Prompt 3)
+
+```text
+backend/app/services/ingestion/
+├── parsers.py        # CSV/XLSX → headers + rows; explicit user-safe errors
+├── registry.py       # source field registry: per-schema column mappings,
+│                     # deterministic detection (no ML/LLM), provenance record
+├── normalizers.py    # currency+unit, counts, percentages, text, nulls, dates
+├── validation.py     # per-type validators, ValidationReport, quality scale
+└── orchestrator.py   # parse → detect → map → normalize → validate →
+                      # persist (partial validity) → quality → provenance
+```
+
+Adding a new official export = adding a `SourceSchema` entry to the
+registry, not rewriting the engine. Duplicate uploads are rejected via
+SHA-256 file hash. Synthetic fixtures under `backend/app/data/fixtures/`
+flow through the same pipeline and are always labelled `is_synthetic=True`.
 
 ## 8. Architecture Decisions
 
