@@ -93,6 +93,23 @@ path no existing tool covers for MPLADS.
 
 ---
 
+## Slide F — Full competitive landscape (verified 2026-09)
+
+| Player | What it is | What it lacks (our lane) |
+|---|---|---|
+| **e-SAKSHI portal + mobile app** (MoSPI, official) | System of record: MP recommendations, sanctions, payments, geo-tagged stage photos, real-time public dashboard, citizen asset verification | No anomaly/fraud/compliance analytics; no risk ranking; no case workflow; no evidence packaging |
+| **Empowered Indian — MPLADS Dashboard** (civil society) | Citizen-facing transparency: aggregated spend, MP profiles, state-wise works, data export | Display-only aggregation for citizens; no detection, no official workflow, no audit trail |
+| **CAG AI-based audits** (institutional) | Forensic AI on state beneficiary schemes (IFMIS/WAMIS/GePNIC integration) | Post-facto, other schemes; not an MPLADS operational monitoring layer |
+| **PM-JAY / MJPJAY fraud AI** | AI flagging forged documents, inflated bills, duplicate patients | Health-claims domain; no MPLADS work/asset model |
+| **Banking fraud engines** (Feedzai, Actimize, …) | Mature transaction-monitoring pattern | Generic financial transactions; no scheme-domain semantics |
+| **Dataful RS works dataset** | Compiled historical Rajya Sabha works data (dataful.in/datasets/18531) | A data source, not a solution — potential ingestion feed |
+
+**Positioning sentence:** citizen dashboards show spending, the official portal
+records works, CAG audits after the fact — Drishti is the missing operational
+layer that tells officials *which works deserve attention today, and why*.
+
+---
+
 ## Weaknesses to pre-empt in Q&A
 
 1. "Why not just add this to e-SAKSHI?" → Independence: the auditing layer
