@@ -6,13 +6,13 @@ services:
     container_name: drishti-backend
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-8317}:8000"
     environment:
       - APP_ENV=development
       - DEMO_AUTOSEED=true
       - DATABASE_URL=sqlite:////app/data/drishti.db
       - REPORT_STORAGE_PATH=/app/reports
-      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:8000
+      - CORS_ORIGINS=http://localhost:5317,http://localhost:5199,http://127.0.0.1:5317,http://127.0.0.1:5199
     volumes:
       - drishti-data:/app/data
       - drishti-reports:/app/reports
@@ -32,7 +32,7 @@ services:
     container_name: drishti-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${FRONTEND_PORT:-5317}:80"
     depends_on:
       backend:
         condition: service_healthy

@@ -99,30 +99,30 @@ To stop the platform: double-click `stop.bat` or run `docker compose down`.
 
 Once started, the backend automatically initializes tables, seeds the synthetic demo dataset, and executes the full detection pipeline:
 
-- **Frontend Application:** [http://localhost:5173](http://localhost:5173)
-- **Backend Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs) (or proxied at [http://localhost:5173/docs](http://localhost:5173/docs))
-- **Backend Health Check:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+- **Frontend Application:** [http://localhost:5317](http://localhost:5317)
+- **Backend Swagger Docs:** [http://localhost:8317/docs](http://localhost:8317/docs) (or proxied at [http://localhost:5317/docs](http://localhost:5317/docs))
+- **Backend Health Check:** [http://localhost:8317/api/v1/health](http://localhost:8317/api/v1/health)
 
 
 ---
 
 ### Option 2: Local manual setup
 
-#### Backend (port 8000)
+#### Backend (port 8317)
 
 ```bash
 cd backend
 py -m pip install -r requirements.txt        # or pip3
 cp .env.example .env                          # optional; defaults work
 py -m alembic upgrade head                    # apply schema migrations
-py -m uvicorn app.main:app --reload --port 8000
+py -m uvicorn app.main:app --reload --port 8317
 ```
 
 In non-production environments tables are also created automatically at startup; production must use Alembic migrations. On first start the API seeds the deterministic synthetic demo dataset and runs the full detection pipeline automatically.
 
 Liveness probe: `GET /api/v1/health` → `{"status": "ok", "service": "drishti-api"}` (never touches the database).
 
-### Frontend (port 5173)
+### Frontend (port 5317)
 
 ```bash
 cd frontend
@@ -130,7 +130,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The dev server proxies `/api` to the backend.
+Open http://localhost:5317. The dev server proxies `/api` to the backend.
 
 ### Tests
 
