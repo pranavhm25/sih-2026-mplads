@@ -8,6 +8,19 @@ Drishti is an **investigation-first** decision-support platform for MPLADS. It i
 
 Drishti **never** declares a project fraudulent. It surfaces potential irregularities and investigation indicators; authorized officials verify, classify and decide.
 
+## 🔗 Live demo
+
+| | |
+|---|---|
+| **Application** | [https://mplads-drishti-codeholics.vercel.app](https://mplads-drishti-codeholics.vercel.app) |
+| **API health** | [https://drishti-backend-h2c8.onrender.com/api/v1/health](https://drishti-backend-h2c8.onrender.com/api/v1/health) |
+| **API docs (Swagger)** | [https://drishti-backend-h2c8.onrender.com/docs](https://drishti-backend-h2c8.onrender.com/docs) |
+
+Sign in with any demo stakeholder account — password for all: `drishti-demo`
+(`ministry@drishti.demo`, `snl@drishti.demo`, `district@drishti.demo`, `mp@drishti.demo`, `admin@drishti.demo`).
+
+> ℹ️ Hosted on free tiers: the backend sleeps after ~15 idle minutes, so the first request may take ~50 s to wake it. Demo data reseeds automatically on every boot.
+
 ---
 
 ## Product walkthrough (demo journey)
@@ -56,7 +69,7 @@ evaluation.
 | ML        | scikit-learn Isolation Forest (unsupervised unusualness only) |
 | NLP       | TF-IDF + cosine similarity duplicate candidates |
 | Reports   | ReportLab PDF |
-| Tests     | pytest (100 backend tests: official ingestion, quality, rules, fusion, duplicates, ML, agency concentration, API, cases, reports) |
+| Tests     | pytest (136 backend tests: official ingestion, quality, rules, fusion, duplicates, ML, agency concentration, API, cases, reports) |
 
 ## Quick start
 
@@ -146,7 +159,7 @@ Deploy the entire platform online 100% free of charge:
 ### Tests
 
 ```bash
-cd backend && py -m pytest tests/ -q          # 100 backend tests
+cd backend && py -m pytest tests/ -q          # 136 backend tests
 cd frontend && npm run test                   # vitest (health screen + smoke)
 cd frontend && npm run typecheck && npm run build
 ```
@@ -201,4 +214,5 @@ All responses use the `{ data, meta }` envelope with dataset version + synthetic
 
 ## Environment
 
-See `backend/.env.example` (`DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `MODEL_VERSION`, `RULESET_VERSION`, `REPORT_STORAGE_PATH`, `DEMO_AUTOSEED`). Secrets stay out of Git.
+- **Backend:** see `backend/.env.example` (`DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `MODEL_VERSION`, `RULESET_VERSION`, `REPORT_STORAGE_PATH`, `DEMO_AUTOSEED`, `SESSION_TTL_HOURS`, `DEMO_ACCOUNTS_ENABLED`). Secrets stay out of Git.
+- **Frontend:** `VITE_API_URL` is baked in at build time from `frontend/.env.production` (empty locally — the Vite dev proxy handles `/api`).
