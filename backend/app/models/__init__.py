@@ -1,5 +1,8 @@
 """ORM models. Importing this package registers all tables on Base.metadata."""
 from app.models.models import (  # noqa: F401
+    AlertDigest,
+    AssetRecord,
+    AuditEvent,
     CaseEvidence,
     CaseEvent,
     CaseNote,
@@ -8,6 +11,7 @@ from app.models.models import (  # noqa: F401
     InvestigationCase,
     MPAllocationRecord,
     Officer,
+    PaymentRecord,
     PeerGroup,
     Project,
     ProjectMetrics,
@@ -22,9 +26,10 @@ from app.models.models import (  # noqa: F401
 )
 
 __all__ = [
-    "CaseEvidence", "CaseEvent", "CaseNote", "Dataset", "DetectionRun",
-    "InvestigationCase", "MPAllocationRecord", "Officer", "PeerGroup",
-    "Project", "ProjectMetrics", "ProjectPeer", "ProjectSignal", "RelatedProject",
+    "AlertDigest", "AssetRecord", "AuditEvent", "CaseEvidence", "CaseEvent",
+    "CaseNote", "Dataset", "DetectionRun", "InvestigationCase",
+    "MPAllocationRecord", "Officer", "PaymentRecord", "PeerGroup", "Project",
+    "ProjectMetrics", "ProjectPeer", "ProjectSignal", "RelatedProject",
     "Report", "RuleDefinition", "SchemeAggregate", "SignalEvidence",
     "ValidationIssue",
 ]

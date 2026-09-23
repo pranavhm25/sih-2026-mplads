@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./drishti.db"
     app_env: str = "development"
+    # Backlog #2 — auth. Production MUST set a real secret; the default only
+    # exists so the demo stack boots. Warned about at startup in production.
     secret_key: str = "change-me-in-production"
     cors_origins: str = "http://localhost:5173"
 
@@ -28,6 +30,9 @@ class Settings(BaseSettings):
     report_storage_path: str = str(BASE_DIR / "reports")
 
     demo_autoseed: bool = True
+
+    session_ttl_hours: int = 8
+    demo_accounts_enabled: bool = True
 
     @property
     def is_sqlite(self) -> bool:

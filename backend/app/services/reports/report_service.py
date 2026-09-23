@@ -207,9 +207,65 @@ def generate_case_report(db: Session, case: InvestigationCase, officer: Officer)
 
     story.append(Spacer(1, 8))
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#9ca3af")))
+
+    # --- Evidence hash manifest (backlog #2: chain of custody) ---------------
+    # sha256 over every persisted record included in this report — signals,
+    # evidence rows, case events, notes. Deterministic, independently
+    # recomputable, and cited in the footer so a recipient can verify the
+    # included content has not changed since generation.
+    import hashlib
+    import json as _json
+
+    def _h(obj) -> str:
+        return hashlib.sha256(
+            _json.dumps(obj, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+
+    manifest_items: list[dict] = [
+        {"kind": "signal", "id": s.id, "hash": _h({
+            "id": s.id, "type": s.signal_type, "severity": s.severity,
+            "title": s.title, "explanation": s.explanation,
+            "observed": s.observed_value, "reference": s.reference_value,
+            "difference": s.difference_value, "created": str(s.created_at)})}
+        for s in signals
+    ]
+    for s in signals:
+        for e in s.evidence:
+            manifest_items.append({"kind": "evidence", "id": e.id, "hash": _h({
+                "id": e.id, "field": e.field_name, "value": e.field_value,
+                "reference": e.reference_value, "calculation": e.calculation})})
+    for ev in case.events:
+        manifest_items.append({"kind": "case_event", "id": ev.id, "hash": _h({
+            "id": ev.id, "type": ev.event_type, "from": ev.from_status,
+            "to": ev.to_status, "created": str(ev.created_at)})})
+    for n in notes:
+        manifest_items.append({"kind": "note", "id": n.id, "hash": _h({
+            "id": n.id, "author": n.author_id, "body": n.body,
+            "created": str(n.created_at)})})
+    manifest_hash = _h(manifest_items)
+
+    story.append(Paragraph("6. Evidence integrity manifest", h2))
+    story.append(Paragraph(
+        f"This report covers {len(manifest_items)} persisted records (signals, "
+        "evidence rows, case events, officer notes). Each record's SHA-256 hash "
+        "is included in the platform's manifest for this report; the manifest "
+        "root is printed below so any later alteration of the included content "
+        "is detectable.", base,
+    ))
+    story.append(Paragraph(
+        f"<font name='Courier' size=7.5>manifest-root: {manifest_hash}</font>", cell,
+    ))
+    story.append(Paragraph(
+        "Platform audit chain (all case actions, hash-linked) can be verified at "
+        "GET /api/v1/audit/verify.", small,
+    ))
+
+    story.append(Spacer(1, 8))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#9ca3af")))
     story.append(Paragraph(
         f"Report {report_number} · version {case.id[:8]} · generated {generated_at.isoformat()} · "
-        f"model {settings.model_version} · ruleset {settings.ruleset_version}. "
+        f"model {settings.model_version} · ruleset {settings.ruleset_version} · "
+        f"manifest {manifest_hash[:16]}… . "
         f"This report supports investigation; it does not constitute an official finding.",
         small,
     ))

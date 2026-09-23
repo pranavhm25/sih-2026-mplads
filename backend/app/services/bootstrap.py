@@ -214,3 +214,9 @@ def _ingest_demo_rows(db: Session, rows: list[dict]) -> Dataset:
 def bootstrap(db: Session) -> None:
     ensure_officers(db)
     seed_demo_if_empty(db)
+    # Stakeholder demo accounts (backlog #2/#4) — config-gated so production
+    # can disable them; creation is idempotent.
+    if settings.demo_accounts_enabled:
+        from app.services.auth import seed_demo_accounts
+
+        seed_demo_accounts(db)

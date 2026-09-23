@@ -21,6 +21,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    LargeBinary,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -114,6 +115,18 @@ class Project(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
     dataset: Mapped[Dataset] = relationship(back_populates="projects")
+    payments: Mapped[list["PaymentRecord"]] = relationship(
+        foreign_keys="PaymentRecord.project_id",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        overlaps="project",
+    )
+    assets: Mapped[list["AssetRecord"]] = relationship(
+        foreign_keys="AssetRecord.project_id",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        overlaps="project",
+    )
     metrics: Mapped["ProjectMetrics | None"] = relationship(
         back_populates="project", uselist=False, cascade="all, delete-orphan"
     )
@@ -359,7 +372,7 @@ class CaseEvidence(Base):
 
 
 class Officer(Base):
-    """Platform user (schema §15)."""
+    """Platform user (schema §15, extended by backlog #2/#4)."""
 
     __tablename__ = "officer"
 
@@ -367,6 +380,13 @@ class Officer(Base):
     name: Mapped[str] = mapped_column(String(255))
     email: Mapped[str] = mapped_column(String(255), unique=True)
     role: Mapped[str] = mapped_column(String(20), default="INVESTIGATOR")
+    # Stakeholder scope (backlog #4): MP / DISTRICT_AUTHORITY / STATE_NODAL /
+    # MINISTRY / ADMIN. NULL for platform investigators.
+    stakeholder_role: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    constituency: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # PBKDF2-SHA256 (backlog #2); NULL for demo-only officers.
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     district: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
@@ -479,6 +499,96 @@ class SchemeAggregate(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     dataset: Mapped[Dataset] = relationship(back_populates="aggregates")
+
+
+class AuditEvent(Base):
+    """Tamper-evident audit event (backlog #2).
+
+    Append-only chain: entry_hash = sha256(prev_hash || canonical(event)).
+    Any retroactive modification breaks every subsequent link, and
+    `verify_audit_chain` detects exactly where.
+    """
+
+    __tablename__ = "audit_event"
+    __table_args__ = (
+        Index("ix_audit_seq", "seq"),
+        Index("ix_audit_action", "action"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    seq: Mapped[int] = mapped_column(Integer, unique=True, autoincrement=False)
+    actor_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    action: Mapped[str] = mapped_column(String(80))
+    entity_type: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    entity_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    prev_hash: Mapped[str] = mapped_column(String(64))
+    entry_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class AlertDigest(Base):
+    """Stateful early-warning digest per stakeholder role (backlog #6).
+
+    `last_seen_seq` marks how far the role has reviewed; regeneration
+    reports only signal/case movement since that watermark.
+    """
+
+    __tablename__ = "alert_digest"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    role: Mapped[str] = mapped_column(String(40))
+    last_seen_seq: Mapped[int] = mapped_column(Integer, default=0)
+    last_generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class PaymentRecord(Base):
+    """Vendor payment against a work (backlog #5). Optional layer: rows exist
+    only when an official source provides payment data — never fabricated."""
+
+    __tablename__ = "payment_record"
+    __table_args__ = (
+        Index("ix_payment_project", "project_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"))
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    payment_ref: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    currency: Mapped[str] = mapped_column(String(10), default="INR")
+    unit: Mapped[str] = mapped_column(String(10), default="RUPEE")
+    paid_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    payee: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    stage: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    source_row_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    project: Mapped[Project] = relationship(
+        foreign_keys=[project_id], back_populates="payments"
+    )
+
+
+class AssetRecord(Base):
+    """Asset creation / verification status for a completed work (backlog #5).
+    Optional layer, same NULL-first policy as payments."""
+
+    __tablename__ = "asset_record"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"))
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    asset_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    geo_tagged_photo_ref: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    verification_status: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    source_row_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    project: Mapped[Project] = relationship(
+        foreign_keys=[project_id], back_populates="assets"
+    )
 
 
 class ValidationIssue(Base):

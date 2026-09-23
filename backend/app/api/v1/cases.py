@@ -1,10 +1,16 @@
-"""Cases + reports API: /api/v1/cases, /api/v1/reports."""
+"""Cases + reports API: /api/v1/cases, /api/v1/reports.
+
+Every case mutation is additionally appended to the tamper-evident audit
+chain (backlog #2) — case events remain the domain trail; audit events are
+the integrity layer above them.
+"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core import security
 from app.core.database import get_db
 from app.models import InvestigationCase, Officer, Project, Report
 from app.schemas.schemas import (
@@ -107,6 +113,13 @@ def create_case(payload: CaseCreate, db: Session = Depends(get_db)):
         actor_id=payload.assigned_officer_id,
         note=payload.note,
     )
+    security.append_audit_event(
+        db, action="CASE_OPENED", actor_id=payload.assigned_officer_id,
+        entity_type="investigation_case", entity_id=case.id,
+        payload={"case_number": case.case_number, "priority": case.priority,
+                 "project_id": project.id},
+    )
+    db.commit()
     return Envelope(data=_case_out(db, case), meta=Meta(generated_at=_now()))
 
 
@@ -130,6 +143,13 @@ def update_case(case_id: str, payload: CaseUpdate, db: Session = Depends(get_db)
         if isinstance(exc, DrishtiError):
             raise HTTPException(status_code=exc.status_code, detail=exc.message)
         raise
+    security.append_audit_event(
+        db, action="CASE_UPDATED", entity_type="investigation_case",
+        entity_id=case.id,
+        payload={"case_number": case.case_number, "status": case.status,
+                 "resolution_type": case.resolution_type},
+    )
+    db.commit()
     return Envelope(data=_case_out(db, case), meta=Meta(generated_at=_now()))
 
 
@@ -145,6 +165,11 @@ def add_case_note(case_id: str, payload: CaseNoteCreate, db: Session = Depends(g
         if isinstance(exc, NotFoundError):
             raise HTTPException(status_code=404, detail=exc.message)
         raise
+    security.append_audit_event(
+        db, action="CASE_NOTE_ADDED", entity_type="investigation_case",
+        entity_id=case.id, payload={"case_number": case.case_number},
+    )
+    db.commit()
     return Envelope(data=_case_out(db, case), meta=Meta(generated_at=_now()))
 
 
@@ -184,6 +209,13 @@ def record_feedback(case_id: str, payload: FeedbackCreate, db: Session = Depends
         if isinstance(exc, DrishtiError):
             raise HTTPException(status_code=exc.status_code, detail=exc.message)
         raise
+    security.append_audit_event(
+        db, action="CASE_FEEDBACK_RECORDED", actor_id=payload.officer_id,
+        entity_type="investigation_case", entity_id=case.id,
+        payload={"case_number": case.case_number,
+                 "resolution_type": case.resolution_type},
+    )
+    db.commit()
     return Envelope(data=_case_out(db, case), meta=Meta(generated_at=_now()))
 
 
@@ -198,6 +230,12 @@ def generate_report(case_id: str, db: Session = Depends(get_db)):
     if officer is None:
         raise HTTPException(status_code=409, detail="No active officer available to generate the report.")
     report = generate_case_report(db, case, officer)
+    security.append_audit_event(
+        db, action="REPORT_GENERATED", actor_id=officer.id,
+        entity_type="report", entity_id=report.id,
+        payload={"report_number": report.report_number, "case_number": case.case_number},
+    )
+    db.commit()
     return Envelope(
         data={"report": ReportOut.model_validate(report).model_dump(),
               "download_url": f"/api/v1/reports/{report.id}/download"},
