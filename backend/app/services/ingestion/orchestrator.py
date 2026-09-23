@@ -190,9 +190,32 @@ def _work_level_to_project(row: dict[str, Any], dataset_id: str) -> Project:
 def persist_work_level_rows(
     db: Session, dataset: Dataset, rows: list[dict[str, Any]]
 ) -> int:
+    from app.models import PaymentRecord
+
+    payments = 0
     for row in rows:
-        db.add(_work_level_to_project(row, dataset.id))
+        project = _work_level_to_project(row, dataset.id)
+        db.add(project)
+        db.flush()  # assign project.id before wiring optional payments
+        for pay in row.get("_payments", []):
+            if pay.get("amount") is None:
+                continue
+            db.add(PaymentRecord(
+                project_id=project.id,
+                dataset_id=dataset.id,
+                payment_ref=pay.get("payment_ref"),
+                amount=pay["amount"],
+                currency="INR",
+                unit=pay.get("unit") or "RUPEE",
+                paid_on=pay.get("paid_on"),
+                payee=pay.get("payee"),
+                stage=pay.get("stage"),
+                source_row_number=row.get("source_row_number"),
+            ))
+            payments += 1
     db.flush()
+    if payments:
+        logger.info("payment_records_persisted count=%d dataset_id=%s", payments, dataset.id)
     return len(rows)
 
 

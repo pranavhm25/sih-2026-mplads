@@ -517,4 +517,18 @@ def normalize_work_level_row(
         out["longitude"] = None if lon_raw in (None, "") else Decimal(str(lon_raw).strip())
     except InvalidOperation:
         out["longitude"] = None
+
+    # Payments layer (backlog #5): present only when the source provides the
+    # columns; each payment row on a work row creates one PaymentRecord.
+    # Absent columns → empty list → nothing persisted, nothing invented.
+    out["_payments"] = []
+    if source_value("payment_amount") is not None or source_value("payment_ref") is not None:
+        out["_payments"].append({
+            "payment_ref": normalize_text(source_value("payment_ref")),
+            "amount": normalize_monetary(source_value("payment_amount"))[0],
+            "unit": normalize_monetary(source_value("payment_amount"))[1],
+            "paid_on": normalize_date(source_value("paid_on")),
+            "payee": normalize_text(source_value("payee")),
+            "stage": normalize_text(source_value("payment_stage")),
+        })
     return out

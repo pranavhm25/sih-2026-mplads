@@ -209,6 +209,20 @@ WORK_LEVEL = SourceSchema(
         FieldMapping("start_date", ("start_date",), "date", transformation="date"),
         FieldMapping("location_text", ("location", "location_text", "village_town"),
                      "text", transformation="text"),
+        # Payments layer (backlog #5) — mapped only when a source provides
+        # payment rows; otherwise these columns never exist and the layer
+        # stays empty. Never fabricated (Prompt-3 §4).
+        FieldMapping("payment_ref", ("payment_ref", "payment_id", "payment_no"),
+                     "text", transformation="text"),
+        FieldMapping("payment_amount", ("payment_amount", "amount_paid",
+                                        "payment_amount_rs_"),
+                     "monetary", transformation="currency:as displayed"),
+        FieldMapping("paid_on", ("paid_on", "payment_date"), "date",
+                     transformation="date"),
+        FieldMapping("payee", ("payee", "paid_to", "vendor_name"),
+                     "text", transformation="text"),
+        FieldMapping("payment_stage", ("payment_stage", "stage"),
+                     "text", transformation="text"),
     ),
 )
 

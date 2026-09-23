@@ -1,0 +1,9 @@
+{
+  "rows": 110000,
+  "elapsed_seconds": 103.18,
+  "rows_per_second": 1066.0,
+  "valid_rows": 110000,
+  "error_rows": 0,
+  "quality_status": "ACCEPTABLE",
+  "note": "Synthetic load test; full ingestion pipeline, detection excluded."
+}

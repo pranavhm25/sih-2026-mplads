@@ -22,13 +22,25 @@ FIXTURES: dict[str, tuple[Path, str, str]] = {
         FIXTURE_DIR / "mp_allocation_ls.csv", "MP_ALLOCATION",
         "Synthetic MP allocation — Lok Sabha structure",
     ),
+    "mp_allocation_ls_xlsx": (
+        FIXTURE_DIR / "mp_allocation_ls.xlsx", "MP_ALLOCATION",
+        "Synthetic MP allocation — Lok Sabha structure (Excel)",
+    ),
     "mp_allocation_rs": (
         FIXTURE_DIR / "mp_allocation_rs.csv", "MP_ALLOCATION",
         "Synthetic MP allocation — Rajya Sabha structure",
     ),
+    "mp_allocation_rs_xlsx": (
+        FIXTURE_DIR / "mp_allocation_rs.xlsx", "MP_ALLOCATION",
+        "Synthetic MP allocation — Rajya Sabha structure (Excel)",
+    ),
     "scheme_aggregate": (
         FIXTURE_DIR / "scheme_aggregate.csv", "SCHEME_AGGREGATE",
         "Synthetic scheme aggregate statistics",
+    ),
+    "scheme_aggregate_xlsx": (
+        FIXTURE_DIR / "scheme_aggregate.xlsx", "SCHEME_AGGREGATE",
+        "Synthetic scheme aggregate statistics (Excel)",
     ),
     "work_level": (
         FIXTURE_DIR / "work_level.csv", "WORK_LEVEL",
