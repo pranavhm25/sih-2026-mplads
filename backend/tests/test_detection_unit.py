@@ -93,3 +93,171 @@ class TestDuplicateScoring:
     def test_combined_score_missing_location_reweights(self):
         s = combined_score(0.9, None, 0.95, True, True)
         assert 0.0 < s <= 1.0
+
+
+class TestAgencyConcentrationUnit:
+    @staticmethod
+    def _create_mem_db():
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from app.core.database import Base
+        from app.models import Dataset
+
+        engine = create_engine("sqlite:///:memory:")
+        Base.metadata.create_all(engine)
+        session = sessionmaker(bind=engine)()
+        dataset = Dataset(
+            name="Unit Test DS",
+            source_label="unit-test",
+            source_type="MEMORY",
+            version="v1",
+            is_synthetic=True,
+            quality_status="VALID",
+        )
+        session.add(dataset)
+        session.commit()
+        return session, dataset
+
+    def test_critical_concentration(self):
+        from app.models import Project, ProjectMetrics
+        from app.services.detection.agency_concentration import detect_agency_concentration
+
+        db, ds = self._create_mem_db()
+        projects = []
+        # 3 works for Agency A at 10L = 30L; 2 works for Agency B at 5L = 10L. Total = 40L.
+        # Agency A share = 75% >= 60% -> CRITICAL
+        for i in range(3):
+            p = Project(
+                dataset_id=ds.id,
+                work_id=f"W-A-{i}",
+                state="Karnataka",
+                district="Belagavi",
+                description=f"Project A {i}",
+                status="In Progress",
+                sanctioned_cost=1000000,
+                estimated_cost=1000000,
+                financial_progress=50,
+                physical_progress=50,
+                implementing_agency="Public Works Department",
+            )
+            p.metrics = ProjectMetrics(project_id=p.id)
+            db.add(p)
+            projects.append(p)
+
+        for i in range(2):
+            p = Project(
+                dataset_id=ds.id,
+                work_id=f"W-B-{i}",
+                state="Karnataka",
+                district="Belagavi",
+                description=f"Project B {i}",
+                status="In Progress",
+                sanctioned_cost=500000,
+                estimated_cost=500000,
+                financial_progress=50,
+                physical_progress=50,
+                implementing_agency="Other Agency",
+            )
+            p.metrics = ProjectMetrics(project_id=p.id)
+            db.add(p)
+            projects.append(p)
+        db.commit()
+
+        counts = detect_agency_concentration(db, projects)
+        assert counts[C.SignalType.AGENCY_CONCENTRATION] == 3
+
+        for p in projects[:3]:
+            sig = next(s for s in p.signals if s.signal_type == C.SignalType.AGENCY_CONCENTRATION)
+            assert sig.triggered is True
+            assert sig.severity == C.Severity.CRITICAL
+            assert float(p.metrics.agency_share_pct) == 75.0
+            assert len(sig.evidence) >= 1
+
+        for p in projects[3:]:
+            sigs = [s for s in p.signals if s.signal_type == C.SignalType.AGENCY_CONCENTRATION]
+            assert len(sigs) == 0
+            assert float(p.metrics.agency_share_pct) == 25.0
+
+    def test_high_severity_concentration(self):
+        from app.models import Project, ProjectMetrics
+        from app.services.detection.agency_concentration import detect_agency_concentration
+
+        db, ds = self._create_mem_db()
+        projects = []
+        # Total 100L. Agency A has 2 works at 25L = 50L (50% -> HIGH between 40% and 60%)
+        # Agency B has 2 works at 25L = 50L (50% -> HIGH)
+        for i in range(2):
+            p = Project(
+                dataset_id=ds.id,
+                work_id=f"W-A-{i}",
+                state="Karnataka",
+                district="Mysuru",
+                description=f"Project A {i}",
+                status="In Progress",
+                sanctioned_cost=2500000,
+                estimated_cost=2500000,
+                financial_progress=50,
+                physical_progress=50,
+                implementing_agency="Agency Alpha",
+            )
+            p.metrics = ProjectMetrics(project_id=p.id)
+            db.add(p)
+            projects.append(p)
+        for i in range(2):
+            p = Project(
+                dataset_id=ds.id,
+                work_id=f"W-B-{i}",
+                state="Karnataka",
+                district="Mysuru",
+                description=f"Project B {i}",
+                status="In Progress",
+                sanctioned_cost=2500000,
+                estimated_cost=2500000,
+                financial_progress=50,
+                physical_progress=50,
+                implementing_agency="Agency Beta",
+            )
+            p.metrics = ProjectMetrics(project_id=p.id)
+            db.add(p)
+            projects.append(p)
+        db.commit()
+
+        counts = detect_agency_concentration(db, projects)
+        assert counts[C.SignalType.AGENCY_CONCENTRATION] == 4
+        for p in projects:
+            sig = next(s for s in p.signals if s.signal_type == C.SignalType.AGENCY_CONCENTRATION)
+            assert sig.severity == C.Severity.HIGH
+
+    def test_small_sample_does_not_trigger(self):
+        from app.models import Project, ProjectMetrics
+        from app.services.detection.agency_concentration import detect_agency_concentration
+
+        db, ds = self._create_mem_db()
+        projects = []
+        # Only 2 works in district: should NOT trigger concentration even if 1 agency has 100%
+        for i in range(2):
+            p = Project(
+                dataset_id=ds.id,
+                work_id=f"W-S-{i}",
+                state="Maharashtra",
+                district="SmallDist",
+                description=f"Small {i}",
+                status="In Progress",
+                sanctioned_cost=1000000,
+                estimated_cost=1000000,
+                financial_progress=50,
+                physical_progress=50,
+                implementing_agency="Sole Agency",
+            )
+            p.metrics = ProjectMetrics(project_id=p.id)
+            db.add(p)
+            projects.append(p)
+        db.commit()
+
+        counts = detect_agency_concentration(db, projects)
+        assert C.SignalType.AGENCY_CONCENTRATION not in counts
+        for p in projects:
+            sigs = [s for s in p.signals if s.signal_type == C.SignalType.AGENCY_CONCENTRATION]
+            assert len(sigs) == 0
+            # Metrics still populated transparently
+            assert float(p.metrics.agency_share_pct) == 100.0

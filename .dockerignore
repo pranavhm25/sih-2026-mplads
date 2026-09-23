@@ -1,0 +1,15 @@
+.git
+.gitignore
+*.md
+*.pptx
+*.png
+.~*
+.env
+backend/.venv
+backend/__pycache__
+backend/.pytest_cache
+backend/*.db
+backend/reports
+frontend/node_modules
+frontend/dist
+frontend/*.tsbuildinfo

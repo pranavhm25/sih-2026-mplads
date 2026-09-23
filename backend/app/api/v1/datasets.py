@@ -88,6 +88,30 @@ async def import_csv(
     )
 
 
+@router.post("/datasets/demo-seed")
+def seed_demo_data(db: Session = Depends(get_db)):
+    """Reset / reseed deterministic demo dataset and run detection engines."""
+    from app.services.bootstrap import reseed_demo_dataset
+    dataset, run = reseed_demo_dataset(db)
+    return Envelope(
+        data={
+            "dataset": dataset.id,
+            "name": dataset.name,
+            "version": dataset.version,
+            "row_count": dataset.row_count,
+            "quality_status": dataset.quality_status,
+            "run_id": run.id,
+            "run_status": run.status,
+            "message": "Demo dataset reseeded and detection run completed.",
+        },
+        meta=Meta(
+            dataset_version=dataset.version,
+            is_synthetic=dataset.is_synthetic,
+            generated_at=_now(),
+        ),
+    )
+
+
 @router.post("/detection/runs")
 def start_detection_run(dataset_id: str | None = None, db: Session = Depends(get_db)):
     dataset = db.get(Dataset, dataset_id) if dataset_id else latest_dataset(db)

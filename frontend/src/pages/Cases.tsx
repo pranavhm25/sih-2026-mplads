@@ -149,11 +149,16 @@ export function CaseDetail() {
         <h1 className="mt-0.5 text-[24px] font-semibold leading-snug">
           {case_.project?.description ?? 'Investigation case'}
         </h1>
-        <p className="mt-1 text-[13px] text-ink-soft">
-          <span className="font-plex font-semibold text-forest">{case_.status.replaceAll('_', ' ')}</span>
-          {' · '}priority {case_.priority}
-          {case_.assigned_officer ? ` · ${case_.assigned_officer.name}` : ' · unassigned'}
-        </p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[13px] text-ink-soft">
+            <span className="font-plex font-semibold text-forest">{case_.status.replaceAll('_', ' ')}</span>
+            {' · '}priority {case_.priority}
+            {case_.assigned_officer ? ` · ${case_.assigned_officer.name}` : ' · unassigned'}
+          </p>
+          <Link to={`/projects/${case_.project_id}`} className="font-plex text-[12px] font-medium text-accent hover:underline">
+            View Project Intelligence →
+          </Link>
+        </div>
       </header>
 
       {msg && (

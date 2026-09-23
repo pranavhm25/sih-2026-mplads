@@ -3,6 +3,7 @@
 ARCHITECTURE.md §4 places persistence plumbing under app/db/.
 """
 from app.core.database import Base, SessionLocal, engine, get_db
+import app.models  # noqa: F401
 
 __all__ = ["Base", "SessionLocal", "engine", "get_db"]
 

@@ -19,3 +19,8 @@ frontend/dist/
 
 # Logs
 *.log
+
+# Office & OS lock/temp files
+.~lock.*#
+.DS_Store
+Thumbs.db

@@ -239,6 +239,7 @@ class DashboardSummary(BaseModel):
     districts: list[dict] = []
     queue_preview: list[ProjectSummary] = []
     dataset: DatasetOut | None = None
+    map_points: list[ProjectSummary] = []
 
 
 # ---------------------------------------------------------------------------

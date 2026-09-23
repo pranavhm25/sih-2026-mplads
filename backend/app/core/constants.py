@@ -151,3 +151,7 @@ DUPLICATE_SCORE_TRIGGER = 0.60
 DUPLICATE_SCORE_HIGH = 0.75
 ML_ANOMALY_TRIGGER = -0.05  # Isolation Forest decision_function; below = unusual
 ML_ANOMALY_HIGH = -0.15
+AGENCY_SHARE_TRIGGER_PCT = 40.0  # % of district sanctioned value held by a single agency
+AGENCY_SHARE_HIGH_PCT = 60.0
+AGENCY_MIN_DISTRICT_WORKS = 4  # Minimum works in district to evaluate concentration
+AGENCY_MIN_WORKS = 2  # Minimum works held by agency in district to trigger

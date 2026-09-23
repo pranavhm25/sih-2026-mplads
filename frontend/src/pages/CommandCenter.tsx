@@ -5,6 +5,7 @@ import { api } from '../services/api'
 import type { DashboardData } from '../types/types'
 import { ErrorState, Loading, MetaLine, PriorityMark, SignalChips } from '../components/ui/Bits'
 import { formatINR, signalLabel } from '../lib/format'
+import CommandCenterMap from '../components/CommandCenterMap'
 
 export default function CommandCenter() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -45,6 +46,10 @@ export default function CommandCenter() {
 
       <div className="mb-6">
         <SummaryStripFrom data={data} />
+      </div>
+
+      <div className="mb-8">
+        <CommandCenterMap points={data.map_points ?? []} />
       </div>
 
       <div className="grid grid-cols-12 gap-8">

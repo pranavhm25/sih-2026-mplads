@@ -15,4 +15,7 @@ def __getattr__(name: str):
     if name == "run_rule_engine":
         from app.rules.engine import run_rule_engine
         return run_rule_engine
+    if name == "detect_agency_concentration":
+        from app.services.detection.agency_concentration import detect_agency_concentration
+        return detect_agency_concentration
     raise AttributeError(name)

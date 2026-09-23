@@ -12,29 +12,77 @@ Drishti **never** declares a project fraudulent. It surfaces potential irregular
 
 ## Product walkthrough (demo journey)
 
-1. **Command Center** — where should attention go first? Summary strip, district attention, priority distribution, investigate-first queue.
+1. **Command Center** — where should attention go first? Summary strip, geographic distribution map (Leaflet point markers colored by priority with tooltips), district attention, priority distribution, investigate-first queue.
 2. **Investigation Queue** — dense work register with priority/signal/state filters and one-click case creation.
 3. **Project Intelligence** — the signature screen: evidence ledger (Signal | Observed | Reference | Delta), Rule → Evidence → Action expansion, peer benchmark, duplicate candidates, timeline, verification checklist, case panel.
 4. **Case file** — lifecycle (Open → Under review → Field verification → Resolved/Escalated), officer notes, feedback classification, audit trail, PDF report.
-5. **Data & Provenance** — every dataset labelled official vs *synthetic demo*.
+5. **Data & Provenance** — one-click demo reseed, CSV import, data quality exception reporting; every dataset labelled official vs *synthetic demo*.
 
-The flagship demo work **MPL-10281** converges **five independent signals**: cost anomaly (+~60% vs peer median), financial/physical gap (84% vs 32%), delay (~145d beyond expected), duplicate candidate (91% text similarity, ~43m away) and an Isolation Forest unusual-pattern score.
+The flagship demo work **MPL-10281** converges **five independent signals**: cost anomaly (+~60% vs peer median), financial/physical gap (84% vs 32%), delay (~145d beyond expected), duplicate candidate (91% text similarity, ~43m away) and an Isolation Forest unusual-pattern score. An **agency concentration** cluster is showcased in Belagavi (>80% sanctioned value held by one agency).
 
 ## Stack
 
 | Layer     | Tech |
 |-----------|------|
-| Frontend  | React 18, TypeScript (strict), Tailwind CSS, Recharts, Vite |
+| Frontend  | React 18, TypeScript (strict), Tailwind CSS, Leaflet, react-leaflet, Recharts, Vite |
 | Backend   | FastAPI, SQLAlchemy 2, Pydantic v2 |
 | Database  | SQLite (demo default) / PostgreSQL (drop-in via `DATABASE_URL`) |
 | ML        | scikit-learn Isolation Forest (unsupervised unusualness only) |
 | NLP       | TF-IDF + cosine similarity duplicate candidates |
 | Reports   | ReportLab PDF |
-| Tests     | pytest (33 tests: rules, fusion, ingestion, quality, API, cases, reports) |
+| Tests     | pytest (50 backend tests: rules, fusion, duplicates, ML, agency concentration, ingestion, quality, API, cases, reports) |
 
 ## Quick start
 
-### Backend (port 8000)
+### Option 1: Run with Docker (Recommended — One Command)
+
+Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or [Docker Engine + Docker Compose](https://docs.docker.com/engine/install/) (Linux). Ensure Docker is running.
+
+#### On Linux / macOS (One Command)
+
+```bash
+./run.sh
+```
+*(Or directly: `docker compose up --build`)*
+
+To stop the platform:
+```bash
+./stop.sh
+# or: docker compose down
+```
+
+#### On Windows (One Command)
+
+**Via Command Prompt or File Explorer:**
+Double-click `run.bat` or run:
+```cmd
+run.bat
+```
+
+**Via PowerShell:**
+```powershell
+.\run.ps1
+```
+*(Or directly: `docker compose up --build`)*
+
+To stop the platform: double-click `stop.bat` or run `docker compose down`.
+
+---
+
+#### Service Endpoints
+
+Once started, the backend automatically initializes tables, seeds the synthetic demo dataset, and executes the full detection pipeline:
+
+- **Frontend Application:** [http://localhost:5173](http://localhost:5173)
+- **Backend Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs) (or proxied at [http://localhost:5173/docs](http://localhost:5173/docs))
+- **Backend Health Check:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+
+
+---
+
+### Option 2: Local manual setup
+
+#### Backend (port 8000)
 
 ```bash
 cd backend

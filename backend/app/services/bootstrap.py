@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.data.demo_data import REFERENCE_DATE, build_demo_rows
-from app.models import Dataset, Officer, Project
+from app.models import Dataset, DetectionRun, InvestigationCase, Officer, Project, RelatedProject
 from app.services.detection.runner import run_detection
 from app.services.ingestion.ingestion import ingest_rows
 
@@ -43,14 +43,57 @@ def latest_dataset(db: Session) -> Dataset | None:
     )
 
 
-def seed_demo_if_empty(db: Session) -> Dataset | None:
-    """Ingest demo data + run detection when no dataset exists yet."""
-    if db.query(Dataset).count() > 0:
-        return None
-    if not settings.demo_autoseed:
-        return None
+def wipe_demo_datasets(db: Session) -> int:
+    """Wipe any existing synthetic demo datasets and their associated records."""
+    demo_datasets = db.query(Dataset).filter(Dataset.is_synthetic.is_(True)).all()
+    if not demo_datasets:
+        return 0
 
-    logger.info("Seeding deterministic demo dataset…")
+    count = len(demo_datasets)
+    ds_ids = [d.id for d in demo_datasets]
+
+    # Find projects in demo datasets
+    projects = db.query(Project).filter(Project.dataset_id.in_(ds_ids)).all()
+    project_ids = [p.id for p in projects]
+
+    if project_ids:
+        # Cases attached to these projects
+        cases = db.query(InvestigationCase).filter(InvestigationCase.project_id.in_(project_ids)).all()
+        for c in cases:
+            db.delete(c)
+        db.flush()
+
+        # Related projects bidirectional links
+        db.query(RelatedProject).filter(
+            (RelatedProject.project_id.in_(project_ids))
+            | (RelatedProject.related_project_id.in_(project_ids))
+        ).delete(synchronize_session=False)
+        db.flush()
+
+        # Delete projects (cascades to metrics, signals, evidence, peer links)
+        for p in projects:
+            db.delete(p)
+        db.flush()
+
+    # Delete detection runs associated with demo datasets
+    db.query(DetectionRun).filter(DetectionRun.dataset_id.in_(ds_ids)).delete(synchronize_session=False)
+    db.flush()
+
+    # Delete demo datasets
+    for d in demo_datasets:
+        db.delete(d)
+    db.commit()
+
+    logger.info("Wiped %d synthetic demo dataset(s).", count)
+    return count
+
+
+def reseed_demo_dataset(db: Session) -> tuple[Dataset, DetectionRun]:
+    """Wipe any existing synthetic demo datasets and reseed fresh demo data."""
+    ensure_officers(db)
+    wipe_demo_datasets(db)
+
+    logger.info("Reseeding deterministic demo dataset…")
     rows = build_demo_rows()
     dataset = ingest_rows(
         db,
@@ -60,9 +103,24 @@ def seed_demo_if_empty(db: Session) -> Dataset | None:
         version="demo-01",
         is_synthetic=True,
     )
-    run_detection(db, dataset, today=REFERENCE_DATE)
-    logger.info("Demo dataset %s ingested (%d works) and detection completed.",
-                dataset.id, dataset.row_count)
+    run = run_detection(db, dataset, today=REFERENCE_DATE)
+    logger.info(
+        "Demo dataset %s reseeded (%d works) and detection run %s completed.",
+        dataset.id,
+        dataset.row_count,
+        run.id,
+    )
+    return dataset, run
+
+
+def seed_demo_if_empty(db: Session) -> Dataset | None:
+    """Ingest demo data + run detection when no dataset exists yet."""
+    if db.query(Dataset).count() > 0:
+        return None
+    if not settings.demo_autoseed:
+        return None
+
+    dataset, _ = reseed_demo_dataset(db)
     return dataset
 
 

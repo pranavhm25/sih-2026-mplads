@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../services/api'
 import type { Officer, ProjectSummary, QueueResponse } from '../types/types'
-import { EmptyState, ErrorState, Loading, PriorityMark, SignalChips } from '../components/ui/Bits'
+import { EmptyState, ErrorState, Loading, MetaLine, PriorityMark, SignalChips } from '../components/ui/Bits'
 import { PRIORITY_ORDER } from '../lib/format'
 
 const SIGNAL_OPTIONS = [
@@ -11,6 +11,7 @@ const SIGNAL_OPTIONS = [
   { value: 'DELAY', label: 'Delay' },
   { value: 'DUPLICATE', label: 'Duplicate candidate' },
   { value: 'ML_ANOMALY', label: 'ML unusual' },
+  { value: 'AGENCY_CONCENTRATION', label: 'Agency concentration' },
   { value: 'DATA_QUALITY', label: 'Data quality' },
 ]
 
@@ -18,6 +19,7 @@ const PRIORITY_OPTIONS = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
 
 export default function InvestigationQueue() {
   const [resp, setResp] = useState<QueueResponse | null>(null)
+  const [meta, setMeta] = useState<{ version: string | null; is_synthetic: boolean | null } | null>(null)
   const [officers, setOfficers] = useState<Officer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,6 +47,7 @@ export default function InvestigationQueue() {
         limit: '200',
       })
       setResp(res.data)
+      setMeta({ version: res.meta.dataset_version, is_synthetic: res.meta.is_synthetic })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load queue')
     } finally {
@@ -108,6 +111,7 @@ export default function InvestigationQueue() {
     <div className="mx-auto max-w-[1400px]">
       <header className="mb-4">
         <h1 className="text-[26px] font-semibold leading-tight">Investigation Queue</h1>
+        <MetaLine dataset={meta} />
         <p className="mt-0.5 text-meta text-ink-faint">
           Works ordered by converging evidence. Priority is a triage aid, not a finding.
         </p>

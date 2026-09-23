@@ -189,6 +189,7 @@ def dashboard_summary(db: Session = Depends(get_db)):
         districts=sorted(districts.values(), key=lambda d: -d["high"]),
         queue_preview=queue_preview,
         dataset=DatasetOut.model_validate(dataset).model_dump(),
+        map_points=[i for i in items if i.latitude is not None and i.longitude is not None],
     )
     return _envelope(summary.model_dump(), db, dataset)
 

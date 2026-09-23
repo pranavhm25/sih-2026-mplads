@@ -207,6 +207,7 @@ export interface DashboardData {
   districts: { district: string; state: string; works: number; value: number; high: number }[]
   queue_preview: ProjectSummary[]
   dataset: Dataset | null
+  map_points?: ProjectSummary[]
 }
 
 export interface QueueResponse {

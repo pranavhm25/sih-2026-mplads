@@ -85,6 +85,32 @@ export const api = {
         source_label: string
       }[]
     >('/datasets'),
+  demoSeed: () =>
+    request<{
+      dataset: string
+      name: string
+      version: string
+      row_count: number
+      quality_status: string
+      run_id: string
+      run_status: string
+      message: string
+    }>('/datasets/demo-seed', { method: 'POST' }),
+  datasetQuality: (datasetId: string) =>
+    request<{
+      dataset_id: string
+      quality_status: string
+      total_rows: number
+      issues: {
+        work_id: string
+        project_id: string
+        rule: string
+        severity: string
+        field: string | null
+        detail: string
+      }[]
+      summary: Record<string, unknown>
+    }>(`/datasets/${datasetId}/quality`),
 }
 
 export { ApiError }

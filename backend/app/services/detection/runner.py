@@ -18,6 +18,7 @@ from app.ml import isolation_forest
 from app.nlp import duplicate_candidates
 from app.rules import engine as rules
 from app.services.detection import (
+    agency_concentration,
     benchmarking,
     fusion,
     metrics as metrics_svc,
@@ -61,13 +62,16 @@ def run_detection(db: Session, dataset: Dataset, today: date | None = None) -> D
         projects = db.query(Project).filter(Project.dataset_id == dataset.id).all()
         summary["rules"] = rules.run_rule_engine(db, projects, today)
 
-        # 5. NLP duplicate candidates
+        # 5. Agency / contractor concentration
+        summary["agency_concentration"] = agency_concentration.detect_agency_concentration(db, projects)
+
+        # 6. NLP duplicate candidates
         summary["duplicates"] = duplicate_candidates.detect_duplicate_candidates(db, projects)
 
-        # 6. Isolation Forest
+        # 7. Isolation Forest
         summary["ml"] = isolation_forest.run_ml_engine(db, projects, today)
 
-        # 7. Evidence fusion → investigation priority per project
+        # 8. Evidence fusion → investigation priority per project
         priorities = fusion.compute_priorities(db, projects)
         summary["priorities"] = {
             pid: {"level": f["level"], "score": f["score"], "signal_count": f["signal_count"]}

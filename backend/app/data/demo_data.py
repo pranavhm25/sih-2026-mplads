@@ -132,13 +132,25 @@ def build_demo_rows(reference_date: date = REFERENCE_DATE) -> list[dict]:
     work_counter = 20001
     for st in STATES:
         for district in st["districts"]:
-            for _ in range(7):
+            for work_idx in range(7):
                 category = rng.choice(CATEGORIES)
                 kind = rng.choice(KINDS[category])
                 place = rng.choice(PLACES)
                 desc = rng.choice(DESCRIPTION_TEMPLATES).format(kind=kind, place=place)
                 median_l = rng.uniform(12, 32)
                 cost_l = median_l * rng.uniform(0.75, 1.3)
+
+                # Agency concentration scenario: Public Works Department holds >80% in Belagavi
+                if district == "Belagavi":
+                    if work_idx < 5:
+                        agency = "Public Works Department"
+                        cost_l = rng.uniform(28.0, 36.0)
+                    else:
+                        agency = "District Rural Development Agency"
+                        cost_l = rng.uniform(8.0, 12.0)
+                else:
+                    agency = rng.choice(AGENCIES)
+
                 fin = round(rng.uniform(15, 100), 1)
                 phys = max(0.0, min(100.0, fin + rng.uniform(-12, 12)))
                 sanction = reference_date - timedelta(days=rng.randint(150, 900))
@@ -172,7 +184,7 @@ def build_demo_rows(reference_date: date = REFERENCE_DATE) -> list[dict]:
                     "start_date": sanction + timedelta(days=rng.randint(10, 45)),
                     "completion_date": completion,
                     "status": "Completed" if completed else "In Progress",
-                    "implementing_agency": rng.choice(AGENCIES),
+                    "implementing_agency": agency,
                     "contractor_name": rng.choice([
                         "Sri Venkateshwara Builders", "Metro Infra Works",
                         "National Civil Contractors", "Sree Sai Constructions",
