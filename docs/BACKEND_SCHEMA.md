@@ -39,16 +39,88 @@ Stores ingestion/provenance metadata.
 ```text
 id                  UUID PK
 name                VARCHAR
-source_type         VARCHAR
-source_label        VARCHAR
+source_type         VARCHAR   # OFFICIAL_PUBLIC_DASHBOARD | OFFICIAL_FILE_UPLOAD | OFFICIAL_DATASET_API | SYNTHETIC_FIXTURE
+dataset_type        VARCHAR   # MP_ALLOCATION | SCHEME_AGGREGATE | WORK_LEVEL | OTHER_OFFICIAL_EXPORT | SYNTHETIC_FIXTURE
+source_label        VARCHAR   # e.g. "MPLADS e-SAKSHI"
+source_url          VARCHAR NULL
 version             VARCHAR
 is_synthetic        BOOLEAN
+retrieved_at        TIMESTAMP NULL
+file_name           VARCHAR NULL
+file_hash           VARCHAR NULL   # sha256 — duplicate-upload guard
+source_schema       JSONB NULL     # detected columns + canonical mapping record
 ingested_at         TIMESTAMP
 row_count           INTEGER
-quality_status      VARCHAR
+quality_status      VARCHAR   # GOOD | ACCEPTABLE | DEGRADED | FAILED (deterministic scale)
 quality_summary     JSONB
 created_at          TIMESTAMP
 ```
+
+## 3a. mp_allocation_record
+
+Normalized MP-level allocation rows (Prompt 3). Lok Sabha sources fill
+`constituency`; Rajya Sabha sources fill `elected_nominated`. The other
+house-specific column stays NULL — never invented.
+
+```text
+id                  UUID PK
+dataset_id          UUID FK
+serial_number       INTEGER NULL
+state               VARCHAR NULL
+mp_name             VARCHAR NULL
+constituency        VARCHAR NULL   # Lok Sabha only
+elected_nominated   VARCHAR NULL   # Rajya Sabha only
+allocated_amount    NUMERIC(16,2) NULL
+amount_unit         VARCHAR        # RUPEE | LAKH | CRORE — unit as in source
+source_row_number   INTEGER
+created_at          TIMESTAMP
+```
+
+## 3b. scheme_aggregate
+
+Dashboard-level aggregate metrics per house (Prompt 3).
+
+```text
+id                                  UUID PK
+dataset_id                          UUID FK
+house                               VARCHAR NULL
+allocated_limit                     NUMERIC(18,2) NULL
+amount_consented_for_calamity       NUMERIC(18,2) NULL
+works_recommended                   INTEGER NULL
+works_sanctioned                    INTEGER NULL
+works_completed                     INTEGER NULL
+expenditure_completed_and_ongoing   NUMERIC(18,2) NULL
+monetary_unit                       VARCHAR       # RUPEE | LAKH | CRORE
+as_of_date                          DATE NULL
+source_row_number                   INTEGER
+created_at                          TIMESTAMP
+```
+
+## 3c. validation_issue
+
+Row-level validation issues from ingestion (Prompt 3). ERROR rows are
+excluded from import but preserved here — never silently discarded.
+
+```text
+id               UUID PK
+dataset_id       UUID FK
+row_number       INTEGER NULL
+field            VARCHAR NULL
+rule             VARCHAR       # e.g. missing_mp_name, negative_amount
+duplicate_serial
+duplicate_mp_record, aggregate_consistency_issue, ...
+severity         VARCHAR       # ERROR | WARNING | INFO
+message          TEXT
+observed_value   TEXT NULL
+created_at       TIMESTAMP
+```
+
+### Unit handling
+
+Dashboard aggregates are displayed in Crore; allocation exports carry raw
+rupee amounts. Values normalize together with their unit
+(`value + unit`), and `to_rupees()` performs the only sanctioned explicit
+conversion. Cross-unit comparison without conversion is prohibited.
 
 ## 4. projects
 
