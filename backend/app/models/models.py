@@ -37,7 +37,8 @@ def gen_uuid() -> str:
 
 
 class Dataset(Base):
-    """Ingestion/provenance metadata (schema §3)."""
+    """Ingestion/provenance metadata (schema §3, extended by Prompt 3 for
+    dataset typing, file identity and quality reporting)."""
 
     __tablename__ = "datasets"
 
@@ -52,8 +53,24 @@ class Dataset(Base):
     quality_status: Mapped[str] = mapped_column(String(50), default="PENDING")
     quality_summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    # --- Prompt-3 provenance extensions -------------------------------------
+    dataset_type: Mapped[str] = mapped_column(String(40), default="WORK_LEVEL")
+    source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    retrieved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    file_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    file_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source_schema: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="dataset")
+    mp_allocations: Mapped[list["MPAllocationRecord"]] = relationship(
+        back_populates="dataset", cascade="all, delete-orphan"
+    )
+    aggregates: Mapped[list["SchemeAggregate"]] = relationship(
+        back_populates="dataset", cascade="all, delete-orphan"
+    )
+    validation_issues: Mapped[list["ValidationIssue"]] = relationship(
+        back_populates="dataset", cascade="all, delete-orphan"
+    )
 
 
 class Project(Base):
@@ -405,3 +422,87 @@ class Report(Base):
 
     case: Mapped[InvestigationCase] = relationship(back_populates="reports")
     generator: Mapped[Officer] = relationship()
+
+
+class MPAllocationRecord(Base):
+    """Normalized MP-level allocation row (Prompt-3 §15).
+
+    Lok Sabha sources provide constituency; Rajya Sabha sources provide
+    elected_nominated. Fields absent from a source stay NULL — never
+    invented (Prompt-3 §4/§15).
+    """
+
+    __tablename__ = "mp_allocation_record"
+    __table_args__ = (
+        Index("ix_mpa_state", "state"),
+        Index("ix_mpa_name", "mp_name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    serial_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    state: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mp_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    constituency: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    elected_nominated: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    allocated_amount: Mapped[Decimal | None] = mapped_column(Numeric(16, 2), nullable=True)
+    # Unit actually present in the source: RUPEE or CRORE (Prompt-3 §18/§37).
+    amount_unit: Mapped[str] = mapped_column(String(10), default="RUPEE")
+    source_row_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    dataset: Mapped[Dataset] = relationship(back_populates="mp_allocations")
+
+
+class SchemeAggregate(Base):
+    """Dashboard-level aggregate metrics (Prompt-3 §16).
+
+    One row per house where the source provides values; only fields
+    actually available are populated.
+    """
+
+    __tablename__ = "scheme_aggregate"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    house: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    allocated_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    amount_consented_for_calamity: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    works_recommended: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    works_sanctioned: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    works_completed: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expenditure_completed_and_ongoing: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    # Unit of the monetary aggregate fields (RUPEE / CRORE / LAKH).
+    monetary_unit: Mapped[str] = mapped_column(String(10), default="RUPEE")
+    as_of_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    source_row_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    dataset: Mapped[Dataset] = relationship(back_populates="aggregates")
+
+
+class ValidationIssue(Base):
+    """One normalized-validation issue for an ingested row (Prompt-3 §23).
+
+    ERROR rows are not imported (but preserved here); WARNING/INFO rows are
+    imported alongside their issue. This table is the audit trail for
+    partial-validity imports.
+    """
+
+    __tablename__ = "validation_issue"
+    __table_args__ = (
+        Index("ix_vissue_dataset", "dataset_id"),
+        Index("ix_vissue_severity", "severity"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_uuid)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    row_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    field: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    rule: Mapped[str] = mapped_column(String(80))
+    severity: Mapped[str] = mapped_column(String(20))
+    message: Mapped[str] = mapped_column(Text)
+    observed_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    dataset: Mapped[Dataset] = relationship(back_populates="validation_issues")

@@ -6,6 +6,7 @@ from app.models.models import (  # noqa: F401
     Dataset,
     DetectionRun,
     InvestigationCase,
+    MPAllocationRecord,
     Officer,
     PeerGroup,
     Project,
@@ -15,12 +16,15 @@ from app.models.models import (  # noqa: F401
     RelatedProject,
     Report,
     RuleDefinition,
+    SchemeAggregate,
     SignalEvidence,
+    ValidationIssue,
 )
 
 __all__ = [
     "CaseEvidence", "CaseEvent", "CaseNote", "Dataset", "DetectionRun",
-    "InvestigationCase", "Officer", "PeerGroup", "Project", "ProjectMetrics",
-    "ProjectPeer", "ProjectSignal", "RelatedProject", "Report",
-    "RuleDefinition", "SignalEvidence",
+    "InvestigationCase", "MPAllocationRecord", "Officer", "PeerGroup",
+    "Project", "ProjectMetrics", "ProjectPeer", "ProjectSignal", "RelatedProject",
+    "Report", "RuleDefinition", "SchemeAggregate", "SignalEvidence",
+    "ValidationIssue",
 ]
