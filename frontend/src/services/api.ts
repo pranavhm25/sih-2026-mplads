@@ -2,7 +2,12 @@
 import type {
   Case,
   DashboardData,
+  DatasetListResponse,
+  DatasetQualityReport,
+  DatasetRecords,
   Envelope,
+  FixtureInfo,
+  ImportSummary,
   Officer,
   ProjectDetail,
   QueueResponse,
@@ -12,9 +17,11 @@ const BASE = '/api/v1'
 
 class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  code?: string
+  constructor(status: number, message: string, code?: string) {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
@@ -25,13 +32,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>
   })
   if (!res.ok) {
     let message = `Request failed (${res.status})`
+    let code: string | undefined
     try {
       const body = await res.json()
-      message = body?.error?.message ?? body?.detail ?? message
+      message = body?.error?.message ?? body?.detail?.error?.message ?? body?.detail ?? message
+      code = body?.error?.code ?? body?.detail?.error?.code
     } catch {
       /* keep default */
     }
-    throw new ApiError(res.status, message)
+    throw new ApiError(res.status, message, code)
   }
   return res.json() as Promise<Envelope<T>>
 }
@@ -72,19 +81,35 @@ export const api = {
       `/cases/${caseId}/report`,
       { method: 'POST' },
     ),
-  datasets: () =>
-    request<
-      {
-        id: string
-        name: string
-        version: string
-        is_synthetic: boolean
-        row_count: number
-        quality_status: string
-        ingested_at: string
-        source_label: string
-      }[]
-    >('/datasets'),
+  datasets: () => request<DatasetListResponse>('/datasets'),
+  datasetQuality: (id: string) => request<DatasetQualityReport>(`/datasets/${id}/quality`),
+  datasetRecords: (id: string, limit = 50, offset = 0) =>
+    request<DatasetRecords>(`/datasets/${id}/records?limit=${limit}&offset=${offset}`),
+  fixtures: () => request<{ fixtures: FixtureInfo[] }>('/datasets/fixtures'),
+  ingestFixture: (name: string) =>
+    request<ImportSummary>(`/datasets/fixtures/${name}/ingest`, { method: 'POST' }),
+  importFile: (file: File, datasetType?: string): Promise<Envelope<ImportSummary>> => {
+    const form = new FormData()
+    form.append('file', file)
+    const qs = datasetType && datasetType !== 'AUTO_DETECT' ? `?dataset_type=${datasetType}` : ''
+    return fetch(`${BASE}/datasets/import${qs}`, { method: 'POST', body: form }).then(
+      async (res) => {
+        if (!res.ok) {
+          let message = `Import failed (${res.status})`
+          let code: string | undefined
+          try {
+            const body = await res.json()
+            message = body?.error?.message ?? body?.detail?.error?.message ?? body?.detail ?? message
+            code = body?.error?.code ?? body?.detail?.error?.code
+          } catch {
+            /* keep default */
+          }
+          throw new ApiError(res.status, message, code)
+        }
+        return res.json() as Promise<Envelope<ImportSummary>>
+      },
+    )
+  },
 }
 
 export { ApiError }

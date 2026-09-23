@@ -191,6 +191,80 @@ export interface Dataset {
   row_count: number
   quality_status: string
   quality_summary: Record<string, unknown> | null
+  dataset_type?: string
+  source_url?: string | null
+  file_name?: string | null
+  file_hash?: string | null
+}
+
+export interface DatasetListResponse {
+  items: Dataset[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface ImportSummary {
+  dataset_id: string
+  dataset_type: string
+  source_type: string
+  status: string
+  row_count: number
+  valid_rows: number
+  warning_rows: number
+  error_rows: number
+  quality_status: string
+  quality_reasons: string[]
+  is_synthetic: boolean
+  file_name: string
+  file_hash: string
+  issue_counts_by_rule: Record<string, number>
+  parse_notes: string[]
+  duplicate_dataset: string | null
+}
+
+export interface ValidationIssueRow {
+  row_number: number | null
+  field: string | null
+  rule: string
+  severity: string
+  message: string
+  observed_value: string | null
+}
+
+export interface DatasetQualityReport {
+  dataset_id: string
+  dataset_type: string
+  quality_status: string
+  total_rows: number
+  valid_rows: number
+  warning_rows: number
+  error_rows: number
+  reasons: string[]
+  missing_field_counts: Record<string, number>
+  invalid_field_counts: Record<string, number>
+  duplicate_counts: Record<string, number>
+  parse_notes: string[]
+  issue_count: number
+  detection_issue_count: number
+  issues: ValidationIssueRow[]
+}
+
+export interface DatasetRecords {
+  dataset_id: string
+  dataset_type: string
+  fields: string[]
+  records: Record<string, unknown>[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface FixtureInfo {
+  name: string
+  file_name: string
+  dataset_type: string
+  label: string
 }
 
 export interface DashboardData {
