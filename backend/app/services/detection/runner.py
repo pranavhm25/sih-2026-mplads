@@ -16,6 +16,7 @@ from app.core.constants import RunStatus
 from app.models import DetectionRun, Dataset, Project
 from app.ml import isolation_forest
 from app.nlp import duplicate_candidates
+from app.rules import compliance
 from app.rules import engine as rules
 from app.services.detection import (
     agency_concentration,
@@ -61,6 +62,7 @@ def run_detection(db: Session, dataset: Dataset, today: date | None = None) -> D
         # 4. Rule engine (cost anomaly, F/P gap, delay)
         projects = db.query(Project).filter(Project.dataset_id == dataset.id).all()
         summary["rules"] = rules.run_rule_engine(db, projects, today)
+        summary["compliance"] = compliance.run_compliance_rules(db, projects)
 
         # 5. Agency / contractor concentration
         summary["agency_concentration"] = agency_concentration.detect_agency_concentration(db, projects)

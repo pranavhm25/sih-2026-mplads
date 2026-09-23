@@ -64,6 +64,106 @@ class OfficerRole(StrEnum):
     SUPERVISOR = "SUPERVISOR"
 
 
+class StakeholderRole(StrEnum):
+    """The four decision-maker roles named in PS 26102 (backlog #4).
+
+    Each role gets a scoped, role-appropriate view of the SAME data:
+    no role sees another's slice unless scope permits.
+    """
+
+    MP = "MP"
+    DISTRICT_AUTHORITY = "DISTRICT_AUTHORITY"
+    STATE_NODAL = "STATE_NODAL"
+    MINISTRY = "MINISTRY"
+    ADMIN = "ADMIN"  # platform operator, full scope
+
+
+class SignalType(StrEnum):
+    """Categories of investigation signals."""
+
+    DATA_QUALITY = "DATA_QUALITY"
+    COST_ANOMALY = "COST_ANOMALY"
+    FIN_PHYS_GAP = "FIN_PHYS_GAP"
+    DELAY = "DELAY"
+    DUPLICATE = "DUPLICATE"
+    ML_ANOMALY = "ML_ANOMALY"
+    AGENCY_CONCENTRATION = "AGENCY_CONCENTRATION"
+    COMPLIANCE = "COMPLIANCE"
+
+
+# ---------------------------------------------------------------------------
+# Backlog #1 — Categorical compliance rule pack.
+# MPLADS violations documented by CAG performance audits are categorical,
+# not statistical. Rules match work descriptions against guideline reference
+# data. Language is deliberately cautious: "compliance indicator", never
+# "fraud" (PS guardrail + Prompt-3 §50).
+# ---------------------------------------------------------------------------
+COMPLIANCE_GUIDELINE_CITATION = (
+    "MPLADS Guidelines (2023 revision); CAG Performance Audit of MPLADS — "
+    "prohibited/expenditure categories"
+)
+
+# Keyword patterns → prohibited/unrestricted category (matched on normalized
+# lowercase work description). Each entry cites the guideline basis.
+PROHIBITED_CATEGORY_PATTERNS: list[dict] = [
+    {"code": "RELIGIOUS_STRUCTURE", "label": "Religious structure",
+     "patterns": ["temple", "mandir", "mosque", "masjid", "church", "gurudwara",
+                  "gurdwara", "shrine", "prayer hall", "dargah"],
+     "guideline": "Guidelines para 2.1: works for religious purposes are prohibited"},
+    {"code": "MEMORIAL_STATUE", "label": "Memorial / statue",
+     "patterns": ["memorial", "statue", "pratima", "bust", "samadhi", "smarak"],
+     "guideline": "Guidelines para 2.1: memorials/statues prohibited"},
+    {"code": "PRIVATE_PROPERTY", "label": "Private property benefit",
+     "patterns": ["private school", "private trust", "private society",
+                  "private hospital", "personal residence"],
+     "guideline": "Guidelines para 2.2: works on private property prohibited"},
+    {"code": "REPAIR_UNPERMITTED", "label": "Repair/maintenance beyond limits",
+     "patterns": ["repair of road", "repair work", "annual repair",
+                  "maintenance of building", "repainting"],
+     "guideline": "Guidelines: repair/maintenance spend restricted to specified assets/limits"},
+    {"code": "OFFICE_BUILDING", "label": "Office building",
+     "patterns": ["office building", "office complex", "secretariat building",
+                  "legislative assembly building"],
+     "guideline": "Guidelines para 2.1: government office buildings prohibited"},
+]
+
+# Payee-type risk: implementing agency names that look like entities outside
+# the permitted lists (societies/trusts need prior nodal approval).
+INELIGIBLE_PAYEE_PATTERNS: list[dict] = [
+    {"code": "UNAPPROVED_TRUST", "label": "Trust/society implementing agency",
+     "patterns": ["trust", "society", "foundation", "seva samiti"],
+     "guideline": "Guidelines: trust/society agencies require State Nodal approval"},
+]
+
+# Split-payment heuristic: repeated payments on one work within a short window
+# that each stay just below a review threshold (payment data only; backlog #5).
+SPLIT_PAYMENT_WINDOW_DAYS = 14
+SPLIT_PAYMENT_MIN_COUNT = 3
+
+# Severity mapping for compliance signals.
+COMPLIANCE_SEVERITY = {
+    "RELIGIOUS_STRUCTURE": Severity.CRITICAL,
+    "MEMORIAL_STATUE": Severity.CRITICAL,
+    "PRIVATE_PROPERTY": Severity.HIGH,
+    "OFFICE_BUILDING": Severity.HIGH,
+    "REPAIR_UNPERMITTED": Severity.MEDIUM,
+    "UNAPPROVED_TRUST": Severity.MEDIUM,
+}
+
+# Fusion weight for the compliance signal (sits beside SIGNAL_WEIGHTS).
+COMPLIANCE_SIGNAL_WEIGHT = 3.5
+
+# ---------------------------------------------------------------------------
+# Backlog #6 — Alert digest thresholds (per-stakeholder early warning).
+# ---------------------------------------------------------------------------
+ALERT_DIGEST_CRITICAL_FLOOR = "CRITICAL"  # roles below Ministry get critical+
+ALERT_DIGEST_HIGH_FLOOR = "HIGH"          # Ministry sees high+; both see critical
+
+# Backlog #8 — benchmark scale (full 18th-LS recommended volume, rounded).
+BENCHMARK_ROW_COUNT = 110_000
+BENCHMARK_SEED = 26102
+
+
 class DatasetStatus(StrEnum):
     PENDING = "PENDING"
     VALID = "VALID"
@@ -122,6 +222,11 @@ CASE_TRANSITIONS: dict[str, set[str]] = {
 
 # Recommended verification actions per signal type (Rule → Evidence → Action).
 RECOMMENDED_VERIFICATION: dict[str, str] = {
+    SignalType.COMPLIANCE: (
+        "Verify the work against the cited MPLADS guideline provision and "
+        "confirm the category/agency with the District Authority before any "
+        "conclusion."
+    ),
     SignalType.FIN_PHYS_GAP: (
         "Verify physical execution on site and reconcile payment milestones "
         "against certified progress."
@@ -158,6 +263,7 @@ RECOMMENDED_VERIFICATION: dict[str, str] = {
 SIGNAL_WEIGHTS: dict[str, float] = {
     SignalType.FIN_PHYS_GAP: 3.0,
     SignalType.COST_ANOMALY: 3.0,
+    SignalType.COMPLIANCE: COMPLIANCE_SIGNAL_WEIGHT,
     SignalType.DUPLICATE: 2.5,
     SignalType.DELAY: 2.0,
     SignalType.ML_ANOMALY: 1.5,
