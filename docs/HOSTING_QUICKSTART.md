@@ -41,7 +41,7 @@ The backend is the FastAPI server that powers detection, cases and reports.
 
    | Field | Value |
    |---|---|
-   | Name | `mplads-drishti-codeholics-api` |
+   | Name | `drishti-backend-h2c8` |
    | Language / Runtime | `Python 3` |
    | Branch | `main` |
    | Root Directory | `backend` |
@@ -62,8 +62,8 @@ The backend is the FastAPI server that powers detection, cases and reports.
    *(Render auto-generates `SECRET_KEY` when using the render.yaml blueprint; if deploying manually, also add `SECRET_KEY` with any long random text.)*
 
 6. Click **Create Web Service** (or **Deploy Web Service**). The first build takes ~5 minutes — grab a coffee ☕.
-7. When the status turns **Live**, click the URL at the top: **`https://mplads-drishti-codeholics-api.onrender.com`**.
-8. **Verify:** open `https://mplads-drishti-codeholics-api.onrender.com/api/v1/health` → you should see `{"status":"ok","service":"drishti-api"}`.
+7. When the status turns **Live**, click the URL at the top: **`https://drishti-backend-h2c8.onrender.com`**.
+8. **Verify:** open `https://drishti-backend-h2c8.onrender.com/api/v1/health` → you should see `{"status":"ok","service":"drishti-api"}`.
    **Write this URL down — you need it in Step 2.**
 
 > 💡 **Faster option:** if your repo contains `render.yaml` (it does!), you can instead click **New + → Blueprint**, pick the repo, and Render fills in everything above automatically.
@@ -85,7 +85,7 @@ The frontend is the React dashboard your users see.
 
    | Key | Value |
    |---|---|
-   | `VITE_API_URL` | `https://mplads-drishti-codeholics-api.onrender.com` |
+   | `VITE_API_URL` | `https://drishti-backend-h2c8.onrender.com` |
 
    ⚠️ **No trailing slash**, no `/api` at the end — just the bare URL.
 
@@ -110,7 +110,7 @@ The frontend is the React dashboard your users see.
 
 | Service | Name | Live URL |
 |---|---|---|
-| Render backend | `mplads-drishti-codeholics-api` | `https://mplads-drishti-codeholics-api.onrender.com` |
+| Render backend | `drishti-backend-h2c8` | `https://drishti-backend-h2c8.onrender.com` |
 | Vercel frontend | `mplads-drishti-codeholics` | `https://mplads-drishti-codeholics.vercel.app` |
 
 ---
@@ -119,7 +119,7 @@ The frontend is the React dashboard your users see.
 
 Right now the API accepts requests from any website. Lock it to your frontend only:
 
-1. Render Dashboard → your `mplads-drishti-codeholics-api` service → **Environment** (left sidebar).
+1. Render Dashboard → your `drishti-backend-h2c8` service → **Environment** (left sidebar).
 2. Edit `CORS_ORIGINS` → set it to your Vercel URL:
    ```
    https://mplads-drishti-codeholics.vercel.app
@@ -149,7 +149,7 @@ The demo dataset is seeded automatically on first boot. Sign in on your deployed
 Render's **free** tier puts your backend to sleep after **15 minutes without traffic**. The next visitor waits **~50 seconds** on a "spinning up" screen. This is normal and free.
 
 **Two easy fixes:**
-- **Before a demo/presentation:** open `https://mplads-drishti-codeholics-api.onrender.com/api/v1/health` in a browser tab ~1 minute before you start. It wakes the server.
+- **Before a demo/presentation:** open `https://drishti-backend-h2c8.onrender.com/api/v1/health` in a browser tab ~1 minute before you start. It wakes the server.
 - **Fully automatic:** this repo ships an optional GitHub Actions workflow (`.github/workflows/keep-alive.yml`) that pings your backend every 10 minutes so it never sleeps. To switch it on, see the short note at the top of that file. Keep-alive runs your service 24/7, which consumes ~744 of the 750 free instance-hours Render grants each workspace per month — fine for one service, but don't enable it if you also run other free services on the same account.
 
 **Why not just pay?** Upgrading the Render instance to paid (~$7/mo) removes cold starts entirely — but this guide is about $0.

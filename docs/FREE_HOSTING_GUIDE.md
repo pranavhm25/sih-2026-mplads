@@ -28,7 +28,7 @@ flowchart LR
 
 | Service | Name | Live URL |
 |---|---|---|
-| Render backend | `mplads-drishti-codeholics-api` | `https://mplads-drishti-codeholics-api.onrender.com` |
+| Render backend | `drishti-backend-h2c8` | `https://drishti-backend-h2c8.onrender.com` |
 | Vercel frontend | `mplads-drishti-codeholics` | `https://mplads-drishti-codeholics.vercel.app` |
 
 > [!TIP]
@@ -62,7 +62,7 @@ health URL one minute before you present — or enable the keep-alive workflow
 4. Connect your GitHub repository (`sih-2026-mplads`).
 5. Render detects [render.yaml](../render.yaml) automatically and shows what it will create.
 6. Click **Apply**.
-7. Render will build and deploy the backend. Once deployment finishes, copy your live backend URL: `https://mplads-drishti-codeholics-api.onrender.com` (if Render appended random characters because the name was taken, recreate the service with a different clean name — see the URL note above).
+7. Render will build and deploy the backend. Once deployment finishes, copy your live backend URL: `https://drishti-backend-h2c8.onrender.com` (if Render appended random characters because the name was taken, recreate the service with a different clean name — see the URL note above).
 
 ### Method B: Manual Web Service Setup on Render
 
@@ -70,7 +70,7 @@ If you prefer setting up manually without Blueprint:
 1. Click **New +** → **Web Service**.
 2. Select your repository.
 3. Configure the following fields:
-   * **Name**: `mplads-drishti-codeholics-api`
+   * **Name**: `drishti-backend-h2c8`
    * **Region**: Any (e.g. `Oregon (US West)` or `Frankfurt` — pick the one closest to your users)
    * **Root Directory**: `backend`
    * **Runtime**: `Python 3`
@@ -85,8 +85,8 @@ If you prefer setting up manually without Blueprint:
    * `SECRET_KEY`: any long random string (Render can generate one)
    * `PYTHON_VERSION`: `3.11.9`
 5. Click **Create Web Service**.
-6. Note down the public URL: `https://mplads-drishti-codeholics-api.onrender.com`.
-7. Verify it is running by visiting `https://mplads-drishti-codeholics-api.onrender.com/api/v1/health` in your browser. It should respond with `{"status":"ok",...}`.
+6. Note down the public URL: `https://drishti-backend-h2c8.onrender.com`.
+7. Verify it is running by visiting `https://drishti-backend-h2c8.onrender.com/api/v1/health` in your browser. It should respond with `{"status":"ok",...}`.
 
 > [!NOTE]
 > Render free web services spin down after 15 minutes of inactivity. When a request arrives, it takes ~45-50 seconds to wake up (cold start). For a live pitch or demo, open the backend URL in a browser 1 minute before your presentation to wake it up!
@@ -110,7 +110,7 @@ If you prefer setting up manually without Blueprint:
    * **Build and Output Settings**: Leave default (`npm run build`, `dist`)
 5. Expand **Environment Variables**:
    * **Name**: `VITE_API_URL`
-   * **Value**: `https://mplads-drishti-codeholics-api.onrender.com` — **no trailing slash**, no `/api`
+   * **Value**: `https://drishti-backend-h2c8.onrender.com` — **no trailing slash**, no `/api`
 6. Click **Deploy**.
 7. In ~60 seconds, Vercel will give you a live production URL: `https://mplads-drishti-codeholics.vercel.app`.
 
@@ -123,7 +123,7 @@ localhost); in production Vercel injects it before building. If you ever change 
 
 While `CORS_ORIGINS=*` any website could call your API. Once you know your Vercel URL:
 
-1. Render Dashboard → `mplads-drishti-codeholics-api` → **Environment**.
+1. Render Dashboard → `drishti-backend-h2c8` → **Environment**.
 2. Set `CORS_ORIGINS` to `https://mplads-drishti-codeholics.vercel.app` (comma-separate extra URLs if needed).
 3. **Save Changes** → Render redeploys automatically.
 
@@ -141,7 +141,7 @@ If you want **permanent persistence** for judge feedback, case notes, and upload
 1. Create a free PostgreSQL database on [Neon.tech](https://neon.tech) (instant, no credit card required; free tier: ~0.5 GB storage, scales to zero after 5 min idle) or [Supabase](https://supabase.com) (500 MB, no sleep, but projects pause after 1 week of inactivity).
 2. Copy the Connection String (URI), e.g.:
    `postgresql://username:password@ep-xyz.neon.tech/neondb?sslmode=require`
-3. In the Render Dashboard, go to your `mplads-drishti-codeholics-api` service → **Environment**.
+3. In the Render Dashboard, go to your `drishti-backend-h2c8` service → **Environment**.
 4. Edit `DATABASE_URL` and paste the connection string (append `?sslmode=require` if not present).
 5. Click **Save Changes**. Render will automatically run Alembic migrations on startup and connect to your cloud PostgreSQL.
 
@@ -191,7 +191,7 @@ The keep-alive workflow in this repo uses 10-minute intervals for exactly this r
 
 ## Verification Checklist
 
-- [ ] Visit `https://mplads-drishti-codeholics-api.onrender.com/api/v1/health` → Returns JSON `{"status": "ok", ...}`
+- [ ] Visit `https://drishti-backend-h2c8.onrender.com/api/v1/health` → Returns JSON `{"status": "ok", ...}`
 - [ ] Visit `https://mplads-drishti-codeholics.vercel.app` → Dashboard loads with summary metrics and Leaflet map
 - [ ] Go to **Investigation Queue** → Filter by priority or state
 - [ ] Open **Project Intelligence** for work `MPL-10281` → Verify evidence ledger and map marker
@@ -267,7 +267,7 @@ Postgres database and/or treat reports as regenerable artifacts.
 ## Step 10 (optional): Keep-alive — say goodbye to cold starts
 
 This repo includes an optional GitHub Actions workflow (`.github/workflows/keep-alive.yml`)
-that pings `https://mplads-drishti-codeholics-api.onrender.com/api/v1/health` every 10
+that pings `https://drishti-backend-h2c8.onrender.com/api/v1/health` every 10
 minutes, keeping Render awake around the clock. See the note at the top of that file for
 setup (it's off by default).
 

@@ -6,7 +6,7 @@
 # 1. GitHub repo → Settings → Secrets and variables → Actions
 # 2. New repository secret:
 #       Name:  RENDER_BACKEND_URL
-#       Value: https://mplads-drishti-codeholics-api.onrender.com   (no trailing slash)
+#       Value: https://drishti-backend-h2c8.onrender.com   (no trailing slash)
 # 3. Done — from the next push the workflow runs every 10 minutes.
 #
 # To turn it OFF later: delete the secret (runs then fail harmlessly), or
