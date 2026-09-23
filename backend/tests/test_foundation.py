@@ -35,6 +35,13 @@ class TestHealthEndpoint:
         assert r.status_code == 200
         assert r.json() == {"status": "ok", "service": "drishti-api"}
 
+    def test_root_endpoint(self, client):
+        r = client.get("/")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "online"
+        assert data["docs"] == "/docs"
+
     def test_health_does_not_require_database(self):
         """The health route module must not import DB machinery."""
         import inspect

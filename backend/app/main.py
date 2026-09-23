@@ -100,6 +100,20 @@ async def validation_error_handler(_: Request, exc: RequestValidationError) -> J
 app.include_router(api_router)
 
 
+@app.get("/")
+def root():
+    """Friendly landing endpoint showing API status and documentation links."""
+    return {
+        "name": "Drishti API",
+        "description": "MPLADS Risk Intelligence & Investigation Platform",
+        "status": "online",
+        "env": settings.app_env,
+        "docs": "/docs",
+        "health": "/api/v1/health",
+        "version": "0.1.0",
+    }
+
+
 @app.get("/api/health")
 def health_legacy():
     """Legacy alias kept for existing clients."""
