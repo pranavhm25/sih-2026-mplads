@@ -52,27 +52,43 @@ class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>> {
+function authHeaders(): Record<string, string> {
   const token = getStoredToken()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
+async function toApiError(res: Response): Promise<ApiError> {
+  let message = `Request failed (${res.status})`
+  let code: string | undefined
+  try {
+    const body = await res.json()
+    message = body?.error?.message ?? body?.detail?.error?.message ?? body?.detail ?? message
+    code = body?.error?.code ?? body?.detail?.error?.code
+  } catch {
+    /* keep default */
+  }
+  return new ApiError(res.status, message, code)
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>> {
   const res = await fetch(`${BASE}${path}`, {
-    headers,
+    headers: authHeaders(),
     ...init,
   })
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`
-    let code: string | undefined
-    try {
-      const body = await res.json()
-      message = body?.error?.message ?? body?.detail?.error?.message ?? body?.detail ?? message
-      code = body?.error?.code ?? body?.detail?.error?.code
-    } catch {
-      /* keep default */
-    }
-    throw new ApiError(res.status, message, code)
-  }
+  if (!res.ok) throw await toApiError(res)
   return res.json() as Promise<Envelope<T>>
+}
+
+/** Like request(), for endpoints that return bare JSON without the {data, meta} envelope. */
+async function bareRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: authHeaders(),
+    ...init,
+  })
+  if (!res.ok) throw await toApiError(res)
+  return res.json() as Promise<T>
 }
 
 export interface HealthData {
@@ -81,7 +97,8 @@ export interface HealthData {
 }
 
 export const api = {
-  health: () => request<HealthData>('/health'),
+  // /api/v1/health intentionally returns bare JSON (liveness probe), not the envelope.
+  health: () => bareRequest<HealthData>('/health'),
   dashboard: () => request<DashboardData>('/dashboard/summary'),
   queue: (params: Record<string, string | undefined>) => {
     const qs = new URLSearchParams()

@@ -18,7 +18,7 @@ function mockFetchOnce(payload: unknown, ok = true) {
 
 describe('SystemStatus (backend health screen)', () => {
   it('shows connected state when /api/v1/health returns ok', async () => {
-    mockFetchOnce({ data: { status: 'ok', service: 'drishti-api' }, meta: {} })
+    mockFetchOnce({ status: 'ok', service: 'drishti-api' })
     render(<SystemStatus />)
     await waitFor(() => expect(screen.getByText(/Backend connected/)).toBeInTheDocument())
     expect(screen.getByText('drishti-api')).toBeInTheDocument()
@@ -35,7 +35,7 @@ describe('SystemStatus (backend health screen)', () => {
   })
 
   it('handles non-ok health payload as down', async () => {
-    mockFetchOnce({ data: { status: 'degraded', service: 'drishti-api' }, meta: {} })
+    mockFetchOnce({ status: 'degraded', service: 'drishti-api' })
     render(<SystemStatus />)
     await waitFor(() => expect(screen.getAllByText(/Backend unreachable/).length).toBeGreaterThan(0))
   })
@@ -45,7 +45,7 @@ describe('SystemStatus (backend health screen)', () => {
       Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ data: { status: 'ok', service: 'drishti-api' }, meta: {} }),
+        json: () => Promise.resolve({ status: 'ok', service: 'drishti-api' }),
       }),
     )
     vi.stubGlobal('fetch', fetchMock)
@@ -59,7 +59,7 @@ describe('SystemStatus (backend health screen)', () => {
 
 describe('App smoke (foundation §15)', () => {
   it('renders the shell with primary navigation', async () => {
-    mockFetchOnce({ data: { status: 'ok', service: 'drishti-api' }, meta: {} })
+    mockFetchOnce({ status: 'ok', service: 'drishti-api' })
     const { default: App } = await import('../App')
     // jsdom lacks URLSearchParams routing issues here; RouterProvider handles '/'
     const { container } = render(<App />)

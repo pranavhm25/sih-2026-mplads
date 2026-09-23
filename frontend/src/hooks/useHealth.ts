@@ -19,8 +19,8 @@ export function useHealth(): HealthState & { recheck: () => void } {
     try {
       const res = await api.health()
       setState({
-        status: res.data.status === 'ok' ? 'up' : 'down',
-        service: res.data.service ?? null,
+        status: res.status === 'ok' ? 'up' : 'down',
+        service: res.service ?? null,
         error: null,
         checkedAt: new Date().toISOString(),
       })
