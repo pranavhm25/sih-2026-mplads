@@ -62,22 +62,6 @@ function formatRecordValue(value: unknown): string {
   return String(value)
 }
 
-interface QualityIssue {
-  work_id: string
-  project_id: string
-  rule: string
-  severity: string
-  field: string | null
-  detail: string
-}
-
-interface QualityData {
-  dataset_id: string
-  quality_status: string
-  total_rows: number
-  issues: QualityIssue[]
-}
-
 export default function DataScreen() {
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [loading, setLoading] = useState(true)
