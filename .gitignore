@@ -3,30 +3,60 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+env/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
 
-# Environment / secrets
+# Environment / secrets (placeholders in .env.example stay tracked)
 .env
+.env.local
+.env.*.local
 
 # Databases & generated artifacts
 *.db
+*.sqlite
+*.sqlite3
 backend/reports/
+logs/
 
 # Node
 node_modules/
 frontend/dist/
+frontend/coverage/
+frontend/.vite/
 *.tsbuildinfo
+
+# Local data drops (data/README.md convention: raw/processed stay on disk)
+data/raw/
+data/processed/
+data/uploads/
 
 # Logs
 *.log
 
-# Office & OS lock/temp files
+# OS & editor lock/temp files
 .~lock.*#
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Temporary directories
+tmp/
+temp/
 
 # Local tooling, datasets & presentation assets (kept on disk, not tracked)
 .freebuff/
 dataset/
 *.pptx
 slide*.png
+
+# Reference-only generated repository report (never tracked, by design)
+REPO_STRUCTURE.md
