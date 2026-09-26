@@ -95,6 +95,9 @@ export interface RelatedProject {
   cost_similarity: number | null
   category_match: boolean | null
   time_overlap: boolean | null
+  /** Contextual validation ("similarity ≠ duplication"): null/undefined = data unavailable */
+  vendor_match?: boolean | null
+  contextual_confidence?: string | null
   combined_score: number
 }
 

@@ -81,6 +81,23 @@ Isolation Forest must run against a stable feature set. The ML result is one evi
 ### TR-07 NLP duplicate detection
 Normalize descriptions before comparison. Use TF-IDF/cosine similarity for the MVP. Optionally add sentence embeddings later.
 
+**Contextual validation ("similarity ≠ duplication").** TF-IDF is a
+*candidate generator*: it measures linguistic similarity, which government
+boilerplate produces constantly. A pair only becomes a STRONG duplicate
+candidate when independent contextual evidence agrees:
+
+| Stage | Signal | Notes |
+|---|---|---|
+| Generate | TF-IDF cosine + weighted component score | linguistic similarity only; never duplication proof |
+| Validate | geospatial proximity (haversine) | `DUPLICATE_GEO_STRONG_M = 50 m` strong band; `> DUPLICATE_GEO_MAX_M = 2000 m` contradicts the text match; missing coordinates make the signal UNAVAILABLE, never zero-distance |
+| Validate | vendor overlap | normalized token-set overlap of implementing agencies (`DUPLICATE_VENDOR_MIN_TOKEN_OVERLAP = 0.5`); missing agency data → UNAVAILABLE |
+| Decide | contextual confidence | high = geo-close + same agency · medium = exactly one independent signal agrees · low = a signal contradicts the text match (boilerplate similarity) · unavailable = no contextual data |
+| Score | fusion gating | low/unavailable-confidence DUPLICATE signals contribute `DUPLICATE_WEAK_CONFIDENCE_WEIGHT = 0.6×` of the standard weight, so text similarity alone cannot drive an unjustified priority |
+
+Every candidate persists five evidence rows (text generator, geospatial
+proximity, vendor overlap, cost similarity, contextual confidence) and the
+link records `vendor_match` + `contextual_confidence` for the API/UI.
+
 ### TR-08 Peer benchmarking
 Peer groups should be configurable using combinations of:
 - district

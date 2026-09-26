@@ -361,8 +361,10 @@ export default function ProjectIntelligence() {
                     <th>Work</th>
                     <th className="text-right">Text sim.</th>
                     <th className="text-right">Distance</th>
+                    <th className="text-right">Vendor</th>
                     <th className="text-right">Cost sim.</th>
                     <th className="text-right">Combined</th>
+                    <th className="text-right">Context</th>
                     <th className="w-20" />
                   </tr>
                 </thead>
@@ -377,8 +379,12 @@ export default function ProjectIntelligence() {
                       </td>
                       <td className="num text-right">{r.text_similarity != null ? `${Math.round(r.text_similarity * 100)}%` : '—'}</td>
                       <td className="num text-right">{r.location_distance_m != null ? `${r.location_distance_m.toFixed(0)} m` : 'n/a'}</td>
+                      <td className="num text-right">
+                        {r.vendor_match === true ? 'same' : r.vendor_match === false ? 'different' : 'n/a'}
+                      </td>
                       <td className="num text-right">{r.cost_similarity != null ? `${Math.round(r.cost_similarity * 100)}%` : '—'}</td>
                       <td className="num text-right font-semibold">{Math.round(r.combined_score * 100)}%</td>
+                      <td className="text-right">{r.contextual_confidence ?? 'n/a'}</td>
                       <td className="text-right text-meta text-ink-faint">candidate</td>
                     </tr>
                   ))}
@@ -390,6 +396,9 @@ export default function ProjectIntelligence() {
             )}
             <p className="mt-1 text-meta text-ink-faint">
               Related works are duplicate candidates for verification — not confirmed duplicates.
+              Text similarity is a screening signal only: strong candidates require corroboration
+              (proximate sites, same implementing agency); low-context matches are likely similar
+              wording, not the same work.
             </p>
           </section>
 

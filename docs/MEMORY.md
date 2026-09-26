@@ -379,3 +379,38 @@ detection accuracy." Never present its numbers as real-world accuracy.
   Synthetic validation panel (`/validation/synthetic`) with the standing
   benchmark disclaimer. Tests: backend/tests/test_synthetic_validation.py
   (19).
+
+
+## Contextual Duplicate Validation (2026-09-26)
+
+Duplicate detection is now a TWO-STAGE pipeline (TRD TR-07):
+"similarity ≠ duplication".
+
+1. GENERATOR (unchanged): TF-IDF/cosine + weighted component score
+   (text/geo/cost/category/time) — linguistic similarity only.
+2. CONTEXTUAL VALIDATION (`app/nlp/duplicate_candidates.py`):
+   - geospatial gate: haversine distance; strong band ≤ 50 m
+     (DUPLICATE_GEO_STRONG_M); > 2 km contradicts the text match
+     (DUPLICATE_GEO_MAX_M); missing coordinates = UNAVAILABLE, never
+     zero distance.
+   - vendor overlap: normalized token-set overlap of implementing
+     agencies (≥ 0.5 = match; legal-form stopwords stripped); missing
+     agency = UNAVAILABLE.
+   - contextual confidence bands: HIGH = geo-close + same agency;
+     MEDIUM = exactly one independent signal agrees; LOW = a signal
+     contradicts (boilerplate similarity); UNAVAILABLE = no context.
+   - severity is confidence-gated: HIGH only for high confidence;
+     low/unavailable → LOW severity. Fusion penalizes weak-confidence
+     DUPLICATE signals to 0.6× weight (DUPLICATE_WEAK_CONFIDENCE_WEIGHT)
+     so text alone cannot drive priority.
+   - every signal carries 5 evidence rows incl. geospatial proximity,
+     vendor overlap and the contextual-confidence decomposition.
+
+Schema: related_project gained vendor_match (bool, NULL = unavailable) +
+contextual_confidence (high/medium/low/unavailable) — migration
+d8e9f0a1b2c3. API RelatedProjectOut exposes both. Project Intelligence
+"Potentially related works" table shows Distance / Vendor / Context
+columns. Flagship MPL-10281 ↔ MPL-10412 verified: distance computed from
+coordinates (7 m, in the ≤50 m band), confidence HIGH, severity HIGH.
+Tests: backend/tests/test_duplicate_context.py (22) — boilerplate-FP
+matrix (7 scenarios) + flagship pair.

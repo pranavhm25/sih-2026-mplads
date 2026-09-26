@@ -150,6 +150,18 @@ Show expected vs elapsed duration.
 ### Duplicate candidate
 Show similarity components rather than a single unexplained duplicate score.
 
+**Similarity ≠ duplication.** Textual similarity is a candidate-generation
+signal, never duplication evidence on its own:
+
+- A strong duplicate candidate requires contextual corroboration:
+  geospatial proximity (≤ 50 m) AND the same implementing agency.
+- High text similarity + distant sites or different agencies = likely
+  generic/boilerplate similarity → LOW severity, reduced fusion weight.
+- Missing coordinates or missing agency data degrade confidence
+  (medium/unavailable); missing data is never read as agreement and never
+  as zero distance.
+- Language stays "duplicate candidate for verification" in every band.
+
 ### Isolation Forest
 Describe the output as statistical unusualness.
 
