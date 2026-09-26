@@ -265,7 +265,8 @@ discarded.
 
 ## Backlog Implementation (2026-09-23)
 
-All 12 backlog items implemented (docs/ROADMAP_BACKLOG.md):
+All 12 backlog items implemented (planning doc removed from the repository;
+items summarized below):
 
 - **Compliance rule pack** (`app/rules/compliance.py`): deterministic keyword
   matching of work descriptions / implementing agencies against MPLADS
@@ -296,7 +297,7 @@ All 12 backlog items implemented (docs/ROADMAP_BACKLOG.md):
   tables + registry fields; rows exist only when a source provides them.
 - **Benchmark**: `backend/scripts/benchmark_scale.py` → 110k rows at
   ~1,070 rows/s (docs/benchmark_result.json).
-- **Pitch/governance docs**: docs/PITCH_DELTAS.md, docs/SUSTAINABILITY.md.
+- **Pitch/governance docs**: docs/SUSTAINABILITY.md.
 - **Demo hardening**: XLSX fixture variants; migration c4d5e6f7a8b9
   (verified up/down).
 
