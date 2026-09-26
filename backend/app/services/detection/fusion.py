@@ -38,7 +38,19 @@ def fuse_project(signals: list[ProjectSignal]) -> dict:
             continue
         weight = C.SIGNAL_WEIGHTS.get(s.signal_type, 1.0)
         mult = C.SEVERITY_MULTIPLIER.get(s.severity, 1.0)
-        contribution = round(weight * mult, 2)
+        # Contextual gating for duplicate signals (TR-07, "similarity ≠
+        # duplication"): a text-only or contradictory-context duplicate
+        # candidate contributes a reduced share, so textual similarity alone
+        # cannot drive an unjustified priority.
+        weight_multiplier = 1.0
+        diff = getattr(s, "difference_value", None)
+        if (
+            s.signal_type == SignalType.DUPLICATE
+            and isinstance(diff, dict)
+            and diff.get("contextual_confidence") in ("low", "unavailable")
+        ):
+            weight_multiplier = C.DUPLICATE_WEAK_CONFIDENCE_WEIGHT
+        contribution = round(weight * mult * weight_multiplier, 2)
         total += contribution
         contributions.append({
             "signal_type": s.signal_type,
