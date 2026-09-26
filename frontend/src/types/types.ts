@@ -399,3 +399,45 @@ export interface TrendsData {
   completion_rates: { label: string; rate: number; is_synthetic: boolean }[] | null
   limitation: string
 }
+
+// ---------------- CAG-grounded validation (docs/CAG_VALIDATION.md) ----------------
+
+export type CagValidationResult = 'FLAGGED' | 'PARTIAL' | 'MISSED' | 'NOT_VALIDATABLE'
+
+export interface CagValidationPatternRow {
+  pattern_id: string
+  title: string
+  result: CagValidationResult
+  flagged: boolean | null
+  validation_method: string
+  work_ids: string[]
+  reason: string | null
+}
+
+export interface CagValidationSummary {
+  report_version: string
+  generated_at: string | null
+  disclaimer: string
+  provenance: string
+  summary: {
+    patterns_total: number
+    FLAGGED: number
+    PARTIAL: number
+    MISSED: number
+    NOT_VALIDATABLE: number
+    dataset_id: string
+    dataset_quality_status: string
+    detection_run_id: string
+    detection_run_status: string
+    detection_ruleset_version: string
+    detection_model_version: string
+    signals_emitted: number
+    rows_imported: number
+    validation_issues_recorded: number
+  }
+  patterns: CagValidationPatternRow[]
+  queue_entry: Record<
+    string,
+    { priority: string | null; score: number | null; enters_queue: boolean }
+  >
+}

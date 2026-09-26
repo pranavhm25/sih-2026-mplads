@@ -265,7 +265,8 @@ discarded.
 
 ## Backlog Implementation (2026-09-23)
 
-All 12 backlog items implemented (docs/ROADMAP_BACKLOG.md):
+All 12 backlog items implemented (planning doc removed from the repository;
+items summarized below):
 
 - **Compliance rule pack** (`app/rules/compliance.py`): deterministic keyword
   matching of work descriptions / implementing agencies against MPLADS
@@ -296,9 +297,46 @@ All 12 backlog items implemented (docs/ROADMAP_BACKLOG.md):
   tables + registry fields; rows exist only when a source provides them.
 - **Benchmark**: `backend/scripts/benchmark_scale.py` → 110k rows at
   ~1,070 rows/s (docs/benchmark_result.json).
-- **Pitch/governance docs**: docs/PITCH_DELTAS.md, docs/SUSTAINABILITY.md.
+- **Pitch/governance docs**: docs/SUSTAINABILITY.md.
 - **Demo hardening**: XLSX fixture variants; migration c4d5e6f7a8b9
   (verified up/down).
 
 Auth keys are env-driven (SECRET_KEY, SESSION_TTL_HOURS,
 DEMO_ACCOUNTS_ENABLED) — see .env.example.
+
+
+## CAG-Grounded Validation Layer (2026-09-26)
+
+Capability validation proving which irregularity PATTERNS documented in
+real CAG audits of MPLADS fall within Drishti's detection capability.
+Full report: docs/CAG_VALIDATION.md. Architecture:
+
+- **Catalog** (`app/data/cag_catalog.py`): 3 verified CAG sources
+  (Report 3A of 2001; Report No. 31 of 2010 — tabled 18 Mar 2011;
+  Report No. 22 of 2025, Para 3.1) and 9 irregularity patterns with
+  verbatim quotes, required data fields, mapped Drishti detector and
+  honest limitations. Adding findings = adding catalog entries.
+- **Fixture** (`app/data/fixtures/cag_patterns.csv`): 17 synthetic works,
+  all `CAGV-`-prefixed, reproducing ONLY the structural signature of each
+  validatable pattern; ingested through the unmodified official pipeline
+  with `is_synthetic=True`, version `cag-validation-1`, source label
+  marker `synthetic_cag_pattern`.
+- **Service** (`app/services/validation/cag_validation.py`): ingest →
+  unmodified detection run (deterministic reference date) → per-pattern
+  evaluation → machine-readable report. Results are FLAGGED / PARTIAL /
+  MISSED / NOT_VALIDATABLE; thresholds never modified to force hits.
+- **API**: `GET /api/v1/validation/cag` (full) and `…/summary` (compact),
+  both `meta.is_synthetic=true`; cached per-process, invalidated on new
+  imports.
+- **UI**: Evidence & Validation screen (`/validation`) with the standing
+  banner "Representative validation — not original CAG case data."
+
+Reference run: 6 FLAGGED (compliance prohibited-category, delay,
+financial/physical gap, ML spend-vs-progress profile, duplicate pair,
+ineligible payee), 0 PARTIAL, 0 MISSED, 3 NOT_VALIDATABLE (missing MP
+recommendation trail, authority fund ledger, records governance — real
+detection gaps, documented, not faked). All 8 flagged works enter the
+investigation queue. NO accuracy claims against real CAG data: the
+underlying work-level records are not publicly available. Tests:
+backend/tests/test_cag_validation.py (25), module-end cleanup restores
+the demo dataset as the latest import for other integration tests.

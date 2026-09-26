@@ -113,7 +113,11 @@ Deliver a stable SIH MVP in three days with the complete path:
 
 ### P1
 - [ ] Risk Replay.
-- [ ] CAG-informed rule references.
+- [x] CAG-informed rule references.
+- [x] CAG-grounded pattern validation layer (docs/CAG_VALIDATION.md):
+      verified CAG findings → pattern catalog → synthetic reproduction →
+      unmodified detector run → honest per-pattern results; 25 automated
+      tests; Evidence & Validation screen.
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
@@ -121,6 +125,8 @@ Deliver a stable SIH MVP in three days with the complete path:
 
 ### Backend
 - [ ] Unit tests for every detection rule.
+- [x] CAG validation tests (fixture provenance, detector execution, honest
+      result generation, language discipline, API surface).
 - [ ] Unit tests for fusion.
 - [ ] API integration tests.
 - [ ] Dataset fixture tests.
