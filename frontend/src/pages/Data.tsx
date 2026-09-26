@@ -129,7 +129,7 @@ export default function DataScreen() {
     <div className="mx-auto max-w-[1150px]">
       <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[26px] font-semibold leading-tight">Data Ingestion &amp; Provenance</h1>
+          <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">Data Ingestion &amp; Provenance</h1>
           <p className="mt-0.5 text-meta text-ink-faint">
             Official MPLADS e-SAKSHI imports, normalization, validation and quality assessment.
             Data issues are quality findings — never conclusions.
@@ -189,6 +189,7 @@ export default function DataScreen() {
             </p>
           </div>
         ) : (
+          <div className="-mx-4 overflow-x-auto sm:mx-0">
           <table className="ledger-table border-t border-ink/60">
             <thead>
               <tr>
@@ -233,6 +234,7 @@ export default function DataScreen() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 
@@ -303,14 +305,14 @@ function DataIngestionPanel({ onImported }: { onImported: () => void }) {
   return (
     <section className="border border-rule bg-paper/70 p-4">
       <h2 className="section-title mb-3">Data Ingestion</h2>
-      <div className="grid grid-cols-[110px_1fr] gap-x-4 gap-y-2 text-[13px]">
-        <span className="pt-1 text-ink-faint">Source</span>
+      <div className="grid grid-cols-[110px_1fr] gap-x-4 gap-y-2 text-[13px] max-sm:grid-cols-1">
+        <span className="pt-1 text-ink-faint max-sm:pt-0">Source</span>
         <span className="font-medium">MPLADS e-SAKSHI (official file upload)</span>
 
         <span className="pt-1 text-ink-faint">Dataset type</span>
         <span>
           <select
-            className="field w-64"
+            className="field w-full max-w-[16rem] sm:w-64"
             value={datasetType}
             onChange={(e) => setDatasetType(e.target.value)}
           >
@@ -323,12 +325,12 @@ function DataIngestionPanel({ onImported }: { onImported: () => void }) {
         </span>
 
         <span className="pt-1 text-ink-faint">File</span>
-        <span className="flex items-center gap-3">
+        <span className="flex flex-wrap items-center gap-3">
           <input
             type="file"
             accept=".csv,.xlsx,.xls"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-[12.5px]"
+            className="max-w-full text-[12.5px]"
           />
           <button className="btn btn-primary" disabled={!file || busy} onClick={submit}>
             {busy ? 'Importing…' : 'Import Dataset'}
@@ -356,28 +358,28 @@ function ImportResultCard({ summary }: { summary: ImportSummary }) {
           QUALITY: {summary.quality_status}
         </span>
       </div>
-      <div className="grid grid-cols-6 divide-x divide-rule px-4 py-3 text-[13px]">
-        <div>
+      <div className="grid grid-cols-2 divide-y divide-rule px-4 py-3 text-[13px] sm:grid-cols-3 sm:divide-y-0 lg:grid-cols-6 lg:divide-x">
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Type</p>
           <p className="font-medium">{DATASET_TYPE_LABELS[summary.dataset_type] ?? summary.dataset_type}</p>
         </div>
-        <div>
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Rows</p>
           <p className="num">{summary.row_count}</p>
         </div>
-        <div>
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Valid</p>
           <p className="num text-forest">{summary.valid_rows}</p>
         </div>
-        <div>
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Warnings</p>
           <p className={`num ${summary.warning_rows ? 'text-amber-signal' : ''}`}>{summary.warning_rows}</p>
         </div>
-        <div>
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Errors</p>
           <p className={`num ${summary.error_rows ? 'text-vermilion' : ''}`}>{summary.error_rows}</p>
         </div>
-        <div>
+        <div className="py-1 sm:py-0">
           <p className="text-meta text-ink-faint">Status</p>
           <p className={`font-plex text-[11.5px] font-semibold ${summary.is_synthetic ? 'text-vermilion' : 'text-forest'}`}>
             {summary.is_synthetic ? 'DEMO DATA' : 'OFFICIAL'}
@@ -488,7 +490,7 @@ function DatasetDetail({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-5 gap-px bg-rule text-[13px]">
+      <div className="mt-3 grid grid-cols-2 gap-px bg-rule text-[13px] sm:grid-cols-3 lg:grid-cols-5">
         {(
           [
             ['Total rows', quality.total_rows],
@@ -519,6 +521,7 @@ function DatasetDetail({
       {quality.issues.length > 0 && (
         <div className="mt-5">
           <h3 className="section-title mb-2">Validation issues</h3>
+          <div className="-mx-4 overflow-x-auto sm:mx-0">
           <table className="ledger-table border-t border-ink/60">
             <thead>
               <tr>
@@ -553,6 +556,7 @@ function DatasetDetail({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -565,6 +569,7 @@ function DatasetDetail({
               source are displayed)
             </span>
           </h3>
+          <div className="-mx-4 overflow-x-auto sm:mx-0">
           <table className="ledger-table border-t border-ink/60">
             <thead>
               <tr>
@@ -588,6 +593,7 @@ function DatasetDetail({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </section>
