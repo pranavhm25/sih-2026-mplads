@@ -33,7 +33,7 @@ Sign in with any demo stakeholder account — password for all: `drishti-demo`
 
 The flagship demo work **MPL-10281** converges **five independent signals**: cost anomaly (+~60% vs peer median), financial/physical gap (84% vs 32%), delay (~145d beyond expected), duplicate candidate (91% text similarity, ~43m away) and an Isolation Forest unusual-pattern score. An **agency concentration** cluster is showcased in Belagavi (>80% sanctioned value held by one agency).
 
-## Official data ingestion (Prompt 3)
+## Official data ingestion
 
 The **Data** screen imports official CSV/XLSX exports from the MPLADS
 e-SAKSHI dashboard. Supported dataset types:

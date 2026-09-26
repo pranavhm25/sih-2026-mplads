@@ -9,7 +9,7 @@ Layers (never mix them):
   fixtures live in `backend/app/data/fixtures/` and are ingested with
   `is_synthetic=true` regardless of filename.
 
-## Official source reality (Prompt 3)
+## Official source reality
 
 The MPLADS e-SAKSHI public dashboard currently exposes (observed):
 
