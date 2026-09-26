@@ -303,6 +303,7 @@ class InvestigationCase(Base):
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     resolution_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    resolution_reason: Mapped[str | None] = mapped_column(String(40), nullable=True)
     resolution_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     project: Mapped[Project] = relationship(back_populates="cases")

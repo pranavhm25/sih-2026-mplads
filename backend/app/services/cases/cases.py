@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.core.constants import (
     CASE_TRANSITIONS,
     CaseStatus,
+    ResolutionReason,
     ResolutionType,
 )
 from app.core.errors import NotFoundError, StateTransitionError, ValidationError400
@@ -146,6 +147,14 @@ def attach_evidence(
     return ce
 
 
+# Statuses that conclude the investigation and require a recorded outcome.
+_CONCLUDING_STATUSES = {CaseStatus.RESOLVED, CaseStatus.ESCALATED, CaseStatus.CLOSED}
+
+# Reopening from a concluded state is a supervisor action — no new outcome
+# classification required, and the previous resolution stays on the record.
+_REOPENING_STATUSES = {CaseStatus.UNDER_REVIEW}
+
+
 def update_case(
     db: Session,
     case: InvestigationCase,
@@ -153,6 +162,7 @@ def update_case(
     status: str | None = None,
     assigned_officer_id: str | None = ...,  # type: ignore[assignment]
     resolution_type: str | None = None,
+    resolution_reason: str | None = None,
     resolution_summary: str | None = None,
     actor_id: str | None = None,
 ) -> InvestigationCase:
@@ -170,6 +180,12 @@ def update_case(
             metadata_json={"officer_id": assigned_officer_id},
         ))
 
+    if resolution_type is not None:
+        if resolution_type not in ResolutionType.__members__:
+            raise ValidationError400(f"Unknown resolution type: {resolution_type}")
+    if resolution_reason is not None and resolution_reason not in ResolutionReason.__members__:
+        raise ValidationError400(f"Unknown resolution reason: {resolution_reason}")
+
     if status is not None and status != case.status:
         allowed = CASE_TRANSITIONS.get(case.status, set())
         if status not in allowed:
@@ -177,27 +193,52 @@ def update_case(
                 f"Transition {case.status} → {status} is not allowed. "
                 f"Allowed: {', '.join(sorted(allowed)) or 'none'}."
             )
-        if status in (CaseStatus.RESOLVED, CaseStatus.ESCALATED) and not resolution_type:
+        concluding = status in _CONCLUDING_STATUSES
+        if concluding and not resolution_type:
             raise ValidationError400(
-                "A resolution classification is required when resolving or escalating."
+                "A resolution classification is required when resolving, "
+                "escalating or closing a case."
             )
+        if status == CaseStatus.CLOSED:
+            # The not-substantiated outcome must carry a structured reason so
+            # the audit trail shows WHY the flagged concern was not upheld.
+            if resolution_type != ResolutionType.NOT_SUBSTANTIATED.value:
+                raise ValidationError400(
+                    "Closing a case requires resolution_type NOT_SUBSTANTIATED. "
+                    "Use RESOLVED (with CONFIRMED_CONCERN) for a substantiated outcome."
+                )
+            if not resolution_reason:
+                raise ValidationError400(
+                    "A structured resolution reason is required when closing a "
+                    "case as not substantiated."
+                )
+            if not (resolution_summary or "").strip():
+                raise ValidationError400(
+                    "A short free-text explanation is required when closing a "
+                    "case as not substantiated."
+                )
         from_status = case.status
         case.status = status
-        if status in (CaseStatus.RESOLVED, CaseStatus.ESCALATED):
+        if concluding:
             case.closed_at = datetime.now(timezone.utc)
+        elif status in _REOPENING_STATUSES and from_status in _CONCLUDING_STATUSES:
+            case.closed_at = None  # reopened — keep resolution_* as history
         db.add(CaseEvent(
             case_id=case.id,
             event_type="STATUS_CHANGED",
             actor_id=actor_id,
             from_status=from_status,
             to_status=status,
-            metadata_json={"resolution_type": resolution_type} if resolution_type else {},
+            metadata_json={
+                **({"resolution_type": resolution_type} if resolution_type else {}),
+                **({"resolution_reason": resolution_reason} if resolution_reason else {}),
+            },
         ))
 
     if resolution_type is not None:
-        if resolution_type not in ResolutionType.__members__:
-            raise ValidationError400(f"Unknown resolution type: {resolution_type}")
         case.resolution_type = resolution_type
+    if resolution_reason is not None:
+        case.resolution_reason = resolution_reason
     if resolution_summary is not None:
         case.resolution_summary = resolution_summary
 

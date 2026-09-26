@@ -56,6 +56,7 @@ def _case_out(db: Session, case: InvestigationCase) -> dict:
         updated_at=case.updated_at,
         closed_at=case.closed_at,
         resolution_type=case.resolution_type,
+        resolution_reason=case.resolution_reason,
         resolution_summary=case.resolution_summary,
         project=summary,
         assigned_officer=(OfficerOut.model_validate(case.assigned_officer).model_dump()
@@ -88,14 +89,15 @@ def create_case(payload: CaseCreate, db: Session = Depends(get_db)):
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    # Reject a second active case for the same project.
+    # Reject a second active case for the same project. CLOSED (not
+    # substantiated) frees the project for a future case if new signals appear.
     existing = (
         db.query(InvestigationCase)
         .filter(InvestigationCase.project_id == project.id)
         .order_by(InvestigationCase.opened_at.desc())
         .first()
     )
-    if existing and existing.status not in ("RESOLVED",):
+    if existing and existing.status not in ("RESOLVED", "CLOSED"):
         raise HTTPException(
             status_code=409,
             detail=f"An active case ({existing.case_number}) already exists for this project.",
@@ -136,6 +138,7 @@ def update_case(case_id: str, payload: CaseUpdate, db: Session = Depends(get_db)
             assigned_officer_id=payload.assigned_officer_id
             if payload.assigned_officer_id is not None else ...,
             resolution_type=payload.resolution_type.value if payload.resolution_type else None,
+            resolution_reason=payload.resolution_reason.value if payload.resolution_reason else None,
             resolution_summary=payload.resolution_summary,
         )
     except Exception as exc:
@@ -147,7 +150,8 @@ def update_case(case_id: str, payload: CaseUpdate, db: Session = Depends(get_db)
         db, action="CASE_UPDATED", entity_type="investigation_case",
         entity_id=case.id,
         payload={"case_number": case.case_number, "status": case.status,
-                 "resolution_type": case.resolution_type},
+                 "resolution_type": case.resolution_type,
+                 "resolution_reason": case.resolution_reason},
     )
     db.commit()
     return Envelope(data=_case_out(db, case), meta=Meta(generated_at=_now()))
