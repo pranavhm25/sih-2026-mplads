@@ -83,13 +83,33 @@ def fuse_project(signals: list[ProjectSignal]) -> dict:
     }
 
 
+# SQLite rejects statements with more than ~999 bound parameters
+# (sqlite3.OperationalError: too many SQL variables), so any IN()-over-all-
+# project-ids query must be chunked. Discovered when /dashboard/summary 500ed
+# on a 110k-row scale-benchmark dataset (scripts/prewarm-demo.py check caught it).
+_SIGNAL_ID_CHUNK = 900
+
+
+def signals_for_project_ids(
+    db: Session, ids: list[str], *criteria: object
+) -> list[ProjectSignal]:
+    """All ProjectSignal rows for the given project ids, chunked under the
+    SQLite bind-variable limit. Extra criteria (e.g. triggered.is_(True))
+    apply to every chunk."""
+    rows: list[ProjectSignal] = []
+    for i in range(0, len(ids), _SIGNAL_ID_CHUNK):
+        q = db.query(ProjectSignal).filter(
+            ProjectSignal.project_id.in_(ids[i : i + _SIGNAL_ID_CHUNK]),
+            *criteria,
+        )
+        rows.extend(q.all())
+    return rows
+
+
 def compute_priorities(db: Session, projects: list[Project]) -> dict[str, dict]:
     """Fuse evidence for each project. Returns {project_id: fusion-dict}."""
     ids = [p.id for p in projects]
-    signals = (
-        db.query(ProjectSignal).filter(ProjectSignal.project_id.in_(ids)).all()
-        if ids else []
-    )
+    signals = signals_for_project_ids(db, ids) if ids else []
     by_project: dict[str, list[ProjectSignal]] = {}
     for s in signals:
         by_project.setdefault(s.project_id, []).append(s)
