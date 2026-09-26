@@ -59,8 +59,8 @@ export default function CommandCenterMap({ points }: MapProps) {
   return (
     <div className="border border-ink/60 bg-paper">
       {/* Header bar / Filters */}
-      <div className="flex flex-wrap items-center justify-between border-b border-rule px-4 py-2.5 bg-canvas/40">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-canvas/40 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="section-title">Geographic Distribution</span>
           <span className="num text-[11px] text-ink-faint">
             {filteredPoints.length} of {validPoints.length} geotagged works

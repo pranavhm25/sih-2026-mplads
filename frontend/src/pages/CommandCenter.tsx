@@ -40,7 +40,7 @@ export default function CommandCenter() {
   return (
     <div className="mx-auto max-w-[1400px]">
       <header className="mb-4">
-        <h1 className="text-[26px] font-semibold leading-tight">Command Center</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">Command Center</h1>
         <MetaLine dataset={meta} />
       </header>
 
@@ -52,9 +52,9 @@ export default function CommandCenter() {
         <CommandCenterMap points={data.map_points ?? []} />
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid grid-cols-12 gap-6 lg:gap-8">
         {/* Left: geography */}
-        <section className="col-span-4">
+        <section className="col-span-12 xl:col-span-4">
           <h2 className="section-title mb-2">District attention</h2>
           <div className="rule-line pt-2">
             <table className="ledger-table">
@@ -99,7 +99,7 @@ export default function CommandCenter() {
         </section>
 
         {/* Center: risk distribution */}
-        <section className="col-span-4">
+        <section className="col-span-12 xl:col-span-4">
           <h2 className="section-title mb-2">Investigation priority distribution</h2>
           <div className="rule-line pt-3">
             <ResponsiveContainer width="100%" height={220}>
@@ -137,7 +137,7 @@ export default function CommandCenter() {
         </section>
 
         {/* Right: queue preview */}
-        <section className="col-span-4">
+        <section className="col-span-12 xl:col-span-4">
           <div className="mb-2 flex items-baseline justify-between">
             <h2 className="section-title">Investigate first</h2>
             <Link to="/queue" className="font-plex text-[12px] font-medium text-accent hover:underline">
@@ -174,8 +174,7 @@ export default function CommandCenter() {
 }
 
 function SummaryStripFrom({ data }: { data: DashboardData }) {
-  return (
-    <div className="flex flex-wrap items-baseline gap-x-10 gap-y-3 border-y border-ink/60 py-4">
+  return (      <div className="grid grid-cols-2 items-baseline gap-y-4 border-y border-ink/60 py-4 sm:grid-cols-3 lg:flex lg:flex-wrap lg:gap-x-10">
       {[
         { label: 'Works', value: String(data.total_works) },
         { label: 'Value', value: formatINR(data.total_value) },
@@ -186,7 +185,7 @@ function SummaryStripFrom({ data }: { data: DashboardData }) {
         { label: 'Open cases', value: String(data.case_open_count) },
       ].map((it) => (
         <div key={it.label} className="flex items-baseline gap-2">
-          <span className="section-title">{it.label}</span>
+          <span className="section-title block">{it.label}</span>
           <span
             className={`num text-[24px] font-semibold leading-none ${
               it.tone === 'critical' ? 'text-vermilion' : 'text-ink'
