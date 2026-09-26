@@ -24,6 +24,20 @@ Do not use:
 
 unless explicitly quoting source material as a documented claim.
 
+### Rule 1b — Case outcomes are human decisions, not verdicts
+The case lifecycle ends in human outcomes only. When an investigator closes
+a case as **not substantiated** (CLOSED / NOT_SUBSTANTIATED):
+- the meaning is strictly "the available evidence did not substantiate the
+  flagged concern" — never "innocence proven", never "the AI was wrong";
+- a structured reason category + short free-text explanation are mandatory
+  and are written to the case audit trail;
+- the original AI-generated signals are immutable historical evidence and
+  must never be edited, hidden or deleted because a case was cleared;
+- UI copy uses neutral wording (amber/ink tones, "Not substantiated"),
+  never red/green guilt-innocence visual language.
+
+Drishti prioritizes investigations; it does not determine guilt.
+
 ### Rule 2 — Preserve evidence
 Every major alert must expose:
 - what triggered it

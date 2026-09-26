@@ -295,8 +295,35 @@ Suggested status values:
 - OPEN
 - UNDER_REVIEW
 - FIELD_VERIFICATION
-- RESOLVED
-- ESCALATED
+- RESOLVED (investigation concluded; classification recorded)
+- ESCALATED (substantiated concern with a higher authority)
+- CLOSED (not substantiated — evidence did not substantiate the flagged
+  concern; not a fraud/innocence verdict)
+
+State machine (enforced centrally in `app/core/constants.py::
+CASE_TRANSITIONS`; violations raise 409):
+
+```text
+OPEN → UNDER_REVIEW → FIELD_VERIFICATION ─┬→ RESOLVED ─┬→ ESCALATED
+                                          │            └→ UNDER_REVIEW (reopen)
+                                          └→ CLOSED (not substantiated)
+                                                └→ UNDER_REVIEW (reopen)
+```
+
+Extra column (migration e1a2b3c4d5e6):
+
+```text
+resolution_reason    VARCHAR NULL   # structured reason category recorded on
+                                    # a NOT_SUBSTANTIATED closure:
+                                    # DOCUMENTATION_PROVIDED | LEGITIMATE_DELAY |
+                                    # DATA_QUALITY_ISSUE | FALSE_DUPLICATE_CANDIDATE |
+                                    # APPROVED_VARIATION | CONTEXTUAL_EXCEPTION | OTHER
+```
+
+Closing a case (→ CLOSED) requires `resolution_type=NOT_SUBSTANTIATED`, a
+`resolution_reason` category and a free-text `resolution_summary`; the
+STATUS_CHANGED case event carries the outcome + reason. Original AI signals
+are never modified by any case action.
 
 Suggested resolution values:
 - CONFIRMED_CONCERN

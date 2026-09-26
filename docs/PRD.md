@@ -186,9 +186,20 @@ Support:
 - open
 - under review
 - field verification
-- resolved
-- escalated
-- false positive / confirmed concern / needs verification feedback
+- resolved (investigation concluded; classification recorded)
+- escalated (substantiated concern raised to a higher authority)
+- closed — not substantiated (human investigation did not substantiate
+  the flagged concern; recorded with a structured reason + free-text
+  explanation and a supervisor reopen path)
+- false positive / confirmed concern / not substantiated / needs
+  verification feedback
+
+**AI FLAG ≠ FRAUD.** Drishti prioritizes investigations; it does not
+determine guilt. A case closed as NOT_SUBSTANTIATED records that the
+available evidence did not substantiate the flagged concern — it is not a
+finding of fraud or of innocence, and it does not imply the automated flag
+was wrong. Original AI-generated signals are immutable historical evidence
+and are preserved on every cleared case and in every report.
 
 ### R13 — Audit report
 Generate a structured report containing project information, risk summary, detected anomalies, evidence, peer comparison, related projects, timeline, recommended verification, remarks and status.

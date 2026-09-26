@@ -223,6 +223,19 @@ REPORT_STORAGE_PATH=
 - evidence fusion
 - case state transitions
 
+### Case outcome lifecycle tests (PRD R12 — AI FLAG ≠ FRAUD)
+- valid transitions: OPEN → UNDER_REVIEW → FIELD_VERIFICATION →
+  RESOLVED | ESCALATED | CLOSED (not substantiated)
+- invalid transitions rejected (e.g. OPEN → CLOSED, RESOLVED → CLOSED)
+- closing requires NOT_SUBSTANTIATED type + structured reason category
+  + free-text explanation (validated centrally, useful 400 errors)
+- every transition recorded in the case audit trail (from → to, actor,
+  outcome, reason)
+- original detection signals unchanged after closure (immutable evidence)
+- NOT_SUBSTANTIATED cases excluded from dashboard open-case counts
+- cleared-case PDF preserves detected signals + outcome + reason category
+- reopening a closed case clears closed_at but keeps resolution history
+
 ### Integration tests
 - dataset import
 - detection run

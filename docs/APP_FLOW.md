@@ -129,9 +129,10 @@ UNDER REVIEW
   ↓
 FIELD VERIFICATION
   ↓
-┌───────────────┬────────────────┐
-│ RESOLVED      │ ESCALATED      │
-└───────────────┴────────────────┘
+┌────────────────────┬────────────────────┬────────────────┐
+│ SUBSTANTIATED      │ NOT SUBSTANTIATED  │ ESCALATED      │
+│ → RESOLVED         │ → CLOSED           │ (with record)  │
+└────────────────────┴────────────────────┴────────────────┘
 ```
 
 Case actions:
@@ -143,6 +144,14 @@ Case actions:
 - assign/reassign
 - record feedback
 - generate report
+
+Closing as **not substantiated** (CLOSED) requires an outcome
+classification (NOT_SUBSTANTIATED), a structured reason category
+(documentation provided · legitimate delay · data-quality issue · false
+duplicate candidate · approved variation · contextual exception · other)
+and a short free-text explanation — all recorded in the case audit trail.
+The original AI-generated signals remain untouched. AI-generated risk
+flags require human verification and do not constitute findings of fraud.
 
 ## 7. Recommended Verification
 

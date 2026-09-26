@@ -128,6 +128,16 @@ Deliver a stable SIH MVP in three days with the complete path:
       and fusion weight; migration d8e9f0a1b2c3; 22 automated tests
       (tests/test_duplicate_context.py) incl. boilerplate-FP matrix and
       MPL-10281 flagship verification.
+- [x] Not-substantiated case outcome (PRD R12 extension, "AI FLAG ≠ FRAUD"):
+      CLOSED status with enforced state machine (OPEN → UNDER_REVIEW →
+      FIELD_VERIFICATION → RESOLVED | ESCALATED | CLOSED), mandatory
+      NOT_SUBSTANTIATED outcome + structured reason category + free-text
+      explanation, STATUS_CHANGED audit events, immutable AI signals,
+      dashboard/stakeholder counts exclude concluded cases, cleared-case PDF
+      outcome section, investigator outcome form (neutral wording) + AI
+      disclaimer banner, seeded demo scenario on MPL-10281 (bootstrap,
+      DEMO_AUTOSEED); migration e1a2b3c4d5e6 (resolution_reason); 20 backend
+      + 3 frontend tests (tests/test_case_outcomes.py, Cases.test.tsx).
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
