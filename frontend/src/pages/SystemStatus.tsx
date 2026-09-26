@@ -19,7 +19,7 @@ export default function SystemStatus() {
   return (
     <div className="mx-auto max-w-[720px]">
       <header className="mb-4">
-        <h1 className="text-[26px] font-semibold leading-tight">System status</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">System status</h1>
         <p className="mt-0.5 text-meta text-ink-faint">
           Development check: frontend → backend API connectivity.
         </p>

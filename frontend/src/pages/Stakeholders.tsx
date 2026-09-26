@@ -114,7 +114,7 @@ export default function Stakeholders() {
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
       <header>
-        <h1 className="text-[26px] font-semibold leading-tight">Stakeholder views</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">Stakeholder views</h1>
         <p className="mt-0.5 text-meta text-ink-faint">
           Role-scoped decision support for the four stakeholders named in the problem
           statement — plus the platform's integrity instruments.
@@ -124,7 +124,7 @@ export default function Stakeholders() {
       {/* Sign-in */}
       <Section title="Sign in">
         {officer ? (
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-[14px] font-semibold">
                 {officer.name}{' '}
@@ -147,13 +147,13 @@ export default function Stakeholders() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleLogin} className="flex flex-wrap items-end gap-3">
-            <label className="text-[12px]">
+          <form onSubmit={handleLogin} className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+            <label className="col-span-2 text-[12px]">
               <span className="block text-ink-faint">Demo account</span>
               <select
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 border border-ink/40 bg-white px-2 py-1.5 font-plex text-[13px]"
+                className="mt-1 w-full border border-ink/40 bg-white px-2 py-1.5 font-plex text-[13px]"
               >
                 {DEMO_ACCOUNTS.map((a) => (
                   <option key={a.email} value={a.email}>
@@ -162,13 +162,13 @@ export default function Stakeholders() {
                 ))}
               </select>
             </label>
-            <label className="text-[12px]">
+            <label className="col-span-1 text-[12px]">
               <span className="block text-ink-faint">Password</span>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-44 border border-ink/40 bg-white px-2 py-1.5 font-plex text-[13px]"
+                className="mt-1 w-full border border-ink/40 bg-white px-2 py-1.5 font-plex text-[13px] sm:w-44"
               />
             </label>
             <button
@@ -257,7 +257,7 @@ export default function Stakeholders() {
       {/* Early-warning digest */}
       {officer && digest && (
         <Section title="Early-warning digest (since last review)">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px]">
               {digest.counts.new_signals} new high/critical signal(s) ·{' '}
               {digest.counts.cases_moved} case movement(s) · floor ≥ {digest.floor_severity}
@@ -366,7 +366,7 @@ export default function Stakeholders() {
       {/* Audit chain */}
       {audit && (
         <Section title="Tamper-evident audit chain">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[14px]">
                 {audit.valid ? (
