@@ -263,10 +263,17 @@ location_distance_m NUMERIC NULL
 cost_similarity     NUMERIC NULL
 category_match      BOOLEAN NULL
 time_overlap        BOOLEAN NULL
+vendor_match        BOOLEAN NULL   # contextual validation; NULL = agency data unavailable
+contextual_confidence VARCHAR NULL # high | medium | low | unavailable
 combined_score      NUMERIC
 relation_type       VARCHAR
 created_at          TIMESTAMP
 ```
+
+Contextual columns (migration `d8e9f0a1b2c3`): TF-IDF text similarity is a
+candidate GENERATOR; `vendor_match` + `contextual_confidence` record the
+independent evidence that decides whether a pair is a strong candidate
+("similarity ≠ duplication" — see TRD TR-07).
 
 ## 11. investigation_case
 

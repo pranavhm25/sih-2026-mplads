@@ -122,6 +122,12 @@ Deliver a stable SIH MVP in three days with the complete path:
       deterministic injection engine with ground truth, scenario matrix,
       precision/recall/F1/FPR/confusion metrics, machine-readable artifact,
       CLI runner + API + Synthetic Model Validation panel; 19 automated tests.
+- [x] Contextual duplicate-candidate validation ("similarity ≠ duplication"):
+      TF-IDF kept as candidate generator; geospatial + vendor-overlap gates,
+      contextual confidence bands, evidence rows, confidence-gated severity
+      and fusion weight; migration d8e9f0a1b2c3; 22 automated tests
+      (tests/test_duplicate_context.py) incl. boilerplate-FP matrix and
+      MPL-10281 flagship verification.
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
