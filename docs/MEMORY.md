@@ -414,3 +414,47 @@ columns. Flagship MPL-10281 ↔ MPL-10412 verified: distance computed from
 coordinates (7 m, in the ≤50 m band), confidence HIGH, severity HIGH.
 Tests: backend/tests/test_duplicate_context.py (22) — boilerplate-FP
 matrix (7 scenarios) + flagship pair.
+
+
+## Demo Resilience Layer (2026-09-26)
+
+Cold-start / availability hardening for the live SIH demo
+(docs/DEMO_RUNBOOK.md). Render free tier sleeps the backend; the first
+minutes of a demo must not look like a crash.
+
+- **Readiness probe** `GET /api/v1/health/ready`
+  (`app/services/system_checks.py`, kept out of the health route module so
+  the foundation source-scan contract holds): one `SELECT 1` + demo-dataset
+  count when `DEMO_AUTOSEED` — never detection. 200 `{status:'ok',
+  ready:true, checks}` / 503 `{status:'starting', ready:false, checks}` via
+  JSONResponse (a returned `(body, 503)` tuple would serialize as JSON 200).
+- **Measured timings (local, SQLite, this machine):** cold boot to liveness
+  ≈ 10.7 s, to READY ≈ 12.7 s (imports dominate; seed+detection ≈ +2 s on
+  empty DB); warm restart identical (~12.8 s — bootstrap correctly no-ops
+  when data exists, proven via unbuffered logs); warm /dashboard/summary
+  0.37 s, cold 0.47 s; health/ready ≈ 0.22 s. Render wake is an estimated
+  +30–60 s (not measurable locally).
+- **Frontend retry layer** (`api.ts`): GET-only bounded exponential backoff
+  [1,2,4,8,8]s (~23 s window) on network errors + 502/503/504 only;
+  mutations never auto-retry (duplicate-case risk); `describeLoadFailure`
+  gives waking-friendly copy; `setRetryDelaysForTesting` for vitest.
+- **Waking UX**: `useBackendReady` (bounded poller, 1.5 s × 60 ≈ 90 s
+  window) + `BackendGate` → "Drishti backend is starting. Retrying
+  connection…" (amber, role=status) in Command Center / Investigation
+  Queue / Project Intelligence; exhausted window shows operator guidance
+  (never "crashed", never stack traces).
+- **Scripts**: `scripts/prewarm-demo.py` (stdlib-only) — pre-warm mode
+  polls liveness→readiness to exit 0 (handles 404 readiness on older
+  builds); check mode verifies frontend, liveness, readiness, critical API
+  (`/dashboard/summary`) and demo login read-only. Exit codes 0/1.
+- **Bug found by the demo-check**: /dashboard/summary 500ed on >999-project
+  datasets (`too many SQL variables`). `signals_for_project_ids` in
+  fusion.py chunks IN() queries at 900 ids; used by dashboard + fusion.
+- Tests: backend/tests/test_health_readiness.py + test_demo_resilience.py
+  (8) — 503 paths, outage degradation, session cleanup, >999-id chunking,
+  read-only probe. Frontend: useHealth.test.tsx extended to 13 (retry
+  window/exhaustion/4xx-no-retry/POST-no-retry, readiness recovery,
+  CommandCenter waking→recover cycle). Full suite: 209 passed + 1 skipped;
+  tsc + vite build green.
+- Demo login credentials are public seeded accounts (ministry@drishti.demo
+  / drishti-demo) — documented, not secrets.

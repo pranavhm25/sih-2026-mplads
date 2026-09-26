@@ -128,6 +128,12 @@ Deliver a stable SIH MVP in three days with the complete path:
       and fusion weight; migration d8e9f0a1b2c3; 22 automated tests
       (tests/test_duplicate_context.py) incl. boilerplate-FP matrix and
       MPL-10281 flagship verification.
+- [x] Demo resilience layer (docs/DEMO_RUNBOOK.md): /api/v1/health/ready
+      readiness probe (DB + demo data, 200/503), bounded GET retry layer in
+      api.ts, waking-backend UI states (BackendGate), scripts/prewarm-demo.py
+      (pre-warm + read-only demo check), runbook with measured timings;
+      8 backend tests + 6 frontend tests. Dashboard signal queries chunked
+      under SQLite's bind-variable limit (500 on >999-project datasets).
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
