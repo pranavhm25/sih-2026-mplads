@@ -12,7 +12,7 @@ Drishti **never** declares a project fraudulent. It surfaces potential irregular
 
 | | |
 |---|---|
-| **Application** | [https://mplads-drishti-codeholics.vercel.app](https://mplads-drishti-codeholics.vercel.app) |
+| **Application** | [https://mplads-drishti-codeholics.vercel.app](https://drishti-mplads-codeholics.vercel.app/) |
 | **API health** | [https://drishti-backend-h2c8.onrender.com/api/v1/health](https://drishti-backend-h2c8.onrender.com/api/v1/health) |
 | **API docs (Swagger)** | [https://drishti-backend-h2c8.onrender.com/docs](https://drishti-backend-h2c8.onrender.com/docs) |
 
