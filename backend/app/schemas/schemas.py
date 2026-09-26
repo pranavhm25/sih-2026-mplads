@@ -10,7 +10,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.constants import ResolutionType
+from app.core.constants import ResolutionReason, ResolutionType
 
 
 class Meta(BaseModel):
@@ -259,6 +259,7 @@ class CaseUpdate(BaseModel):
     status: str | None = None
     assigned_officer_id: str | None = None
     resolution_type: ResolutionType | None = None
+    resolution_reason: ResolutionReason | None = None
     resolution_summary: str | None = None
 
 
@@ -292,6 +293,7 @@ class CaseOut(BaseModel):
     updated_at: datetime
     closed_at: datetime | None = None
     resolution_type: str | None = None
+    resolution_reason: str | None = None
     resolution_summary: str | None = None
     project: ProjectSummary | None = None
     assigned_officer: OfficerOut | None = None

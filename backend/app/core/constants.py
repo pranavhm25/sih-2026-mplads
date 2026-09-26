@@ -50,12 +50,31 @@ class CaseStatus(StrEnum):
     FIELD_VERIFICATION = "FIELD_VERIFICATION"
     RESOLVED = "RESOLVED"
     ESCALATED = "ESCALATED"
+    CLOSED = "CLOSED"
 
 
 class ResolutionType(StrEnum):
     CONFIRMED_CONCERN = "CONFIRMED_CONCERN"
     FALSE_POSITIVE = "FALSE_POSITIVE"
     NEEDS_VERIFICATION = "NEEDS_VERIFICATION"
+    # Human investigation found no substantiated irregularity. Distinct from
+    # FALSE_POSITIVE: FALSE_POSITIVE means the automated flag itself was
+    # wrong (dedup/quality artifact); NOT_SUBSTANTIATED means the flag was
+    # plausible but human verification did not substantiate the concern.
+    NOT_SUBSTANTIATED = "NOT_SUBSTANTIATED"
+
+
+# Structured reason categories a NOT_SUBSTANTIATED closure must choose from
+# (plus a free-text explanation). Lightweight by design: one pick + one
+# sentence — not a burden on the investigator.
+class ResolutionReason(StrEnum):
+    DOCUMENTATION_PROVIDED = "DOCUMENTATION_PROVIDED"
+    LEGITIMATE_DELAY = "LEGITIMATE_DELAY"
+    DATA_QUALITY_ISSUE = "DATA_QUALITY_ISSUE"
+    FALSE_DUPLICATE_CANDIDATE = "FALSE_DUPLICATE_CANDIDATE"
+    APPROVED_VARIATION = "APPROVED_VARIATION"
+    CONTEXTUAL_EXCEPTION = "CONTEXTUAL_EXCEPTION"
+    OTHER = "OTHER"
 
 
 class OfficerRole(StrEnum):
@@ -210,12 +229,31 @@ class RunStatus(StrEnum):
     FAILED = "FAILED"
 
 
-# Case lifecycle: OPEN → UNDER_REVIEW → FIELD_VERIFICATION → RESOLVED | ESCALATED
+# Case lifecycle (PRD R12):
+#
+#   OPEN → UNDER_REVIEW → FIELD_VERIFICATION ─┬→ RESOLVED (concluded w/ record)
+#                                             │    └→ ESCALATED
+#                                             └→ CLOSED (not substantiated)
+#
+# Two human outcomes exist at the end of verification:
+# - SUBSTANTIATED path: the concern held up → RESOLVED with a confirmed
+#   classification, optionally ESCALATED to higher authority.
+# - NOT SUBSTANTIATED path: the available evidence did not substantiate the
+#   flagged concern → CLOSED. This is not a fraud/innocence verdict and does
+#   not imply the AI flag was wrong — see ResolutionType.NOT_SUBSTANTIATED.
+#
+# Closed/escalated cases can be reopened by supervisors (UNDER_REVIEW).
 CASE_TRANSITIONS: dict[str, set[str]] = {
     CaseStatus.OPEN: {CaseStatus.UNDER_REVIEW, CaseStatus.FIELD_VERIFICATION},
-    CaseStatus.UNDER_REVIEW: {CaseStatus.FIELD_VERIFICATION, CaseStatus.RESOLVED, CaseStatus.ESCALATED},
-    CaseStatus.FIELD_VERIFICATION: {CaseStatus.UNDER_REVIEW, CaseStatus.RESOLVED, CaseStatus.ESCALATED},
-    CaseStatus.RESOLVED: {CaseStatus.UNDER_REVIEW},  # reopen path
+    CaseStatus.UNDER_REVIEW: {
+        CaseStatus.FIELD_VERIFICATION, CaseStatus.RESOLVED, CaseStatus.ESCALATED,
+    },
+    CaseStatus.FIELD_VERIFICATION: {
+        CaseStatus.UNDER_REVIEW, CaseStatus.RESOLVED, CaseStatus.ESCALATED,
+        CaseStatus.CLOSED,
+    },
+    CaseStatus.RESOLVED: {CaseStatus.UNDER_REVIEW, CaseStatus.ESCALATED},
+    CaseStatus.CLOSED: {CaseStatus.UNDER_REVIEW},  # supervisor reopen path
     CaseStatus.ESCALATED: {CaseStatus.UNDER_REVIEW},  # return from escalation
 }
 
