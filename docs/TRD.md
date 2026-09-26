@@ -223,6 +223,18 @@ REPORT_STORAGE_PATH=
 ### Data tests
 Maintain fixed synthetic fixtures for known anomaly scenarios.
 
+### CAG-grounded validation tests (docs/CAG_VALIDATION.md)
+- fixture provenance: every fixture work `CAGV-`-prefixed, dataset always
+  `is_synthetic=True` with `synthetic_cag_pattern` source-label marker
+- expected pattern characteristics survive ingestion
+- detector execution against the unmodified pipeline (deterministic
+  reference date; thresholds never modified)
+- honest result generation: FLAGGED / PARTIAL / MISSED reported as
+  measured; data-unavailable patterns reported NOT_VALIDATABLE, never faked
+- language discipline: no claim of detecting real CAG cases, no accuracy
+  metrics against unavailable real data
+- API surface: `/api/v1/validation/cag` and `…/summary`
+
 ## 8. Deployment
 
 Preferred architecture:

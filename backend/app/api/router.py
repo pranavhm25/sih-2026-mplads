@@ -8,11 +8,13 @@ Routers:
 - auth      — /api/v1/auth, /api/v1/audit (backlog #2)
 - stakeholder — role-scoped views (backlog #4), validation story (#3),
                 alert digest (#6), trends (#7)
+- cag_validation — CAG-grounded pattern capability report
+                  (docs/CAG_VALIDATION.md)
 """
 from fastapi import APIRouter
 
 from app.api.routes import health
-from app.api.v1 import auth, cases, datasets, projects, stakeholder
+from app.api.v1 import auth, cag_validation, cases, datasets, projects, stakeholder
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health.router)
@@ -21,3 +23,4 @@ api_router.include_router(datasets.router)
 api_router.include_router(projects.router)
 api_router.include_router(cases.router)
 api_router.include_router(stakeholder.router)
+api_router.include_router(cag_validation.router)
