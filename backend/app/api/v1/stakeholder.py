@@ -139,7 +139,9 @@ def stakeholder_summary(
     # Cases (district/state/ministry see case queues; MP gets a plain summary)
     cases_total = case_q.count()
     cases_open = case_q.filter(
-        InvestigationCase.status.notin_([CaseStatus.RESOLVED.value])
+        InvestigationCase.status.notin_(
+            [CaseStatus.RESOLVED.value, CaseStatus.ESCALATED.value, CaseStatus.CLOSED.value]
+        )
     ).count()
     cases_by_status: dict[str, int] = dict(
         (row[0], row[1])
