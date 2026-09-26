@@ -16,6 +16,7 @@ class SignalType(StrEnum):
     DUPLICATE = "DUPLICATE"
     ML_ANOMALY = "ML_ANOMALY"
     AGENCY_CONCENTRATION = "AGENCY_CONCENTRATION"
+    COMPLIANCE = "COMPLIANCE"
 
 
 class Severity(StrEnum):
@@ -95,19 +96,6 @@ class StakeholderRole(StrEnum):
     STATE_NODAL = "STATE_NODAL"
     MINISTRY = "MINISTRY"
     ADMIN = "ADMIN"  # platform operator, full scope
-
-
-class SignalType(StrEnum):
-    """Categories of investigation signals."""
-
-    DATA_QUALITY = "DATA_QUALITY"
-    COST_ANOMALY = "COST_ANOMALY"
-    FIN_PHYS_GAP = "FIN_PHYS_GAP"
-    DELAY = "DELAY"
-    DUPLICATE = "DUPLICATE"
-    ML_ANOMALY = "ML_ANOMALY"
-    AGENCY_CONCENTRATION = "AGENCY_CONCENTRATION"
-    COMPLIANCE = "COMPLIANCE"
 
 
 # ---------------------------------------------------------------------------

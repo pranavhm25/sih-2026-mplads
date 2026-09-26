@@ -76,7 +76,8 @@ def build_demo_rows(reference_date: date = REFERENCE_DATE) -> list[dict]:
     rows: list[dict] = []
 
     # --- Flagship anomaly case and its duplicate twin --------------------
-    # 91% text similarity, 43 m apart, near-identical cost, category, time.
+    # 0.87 TF-IDF cosine similarity, ~7 m apart (haversine from the stored
+    # coordinates), near-identical cost, category, time.
     rows.append({
         "work_id": "MPL-10281",
         "mp_name": "R. Krishnamurthy",
@@ -110,7 +111,7 @@ def build_demo_rows(reference_date: date = REFERENCE_DATE) -> list[dict]:
         "district": "Bengaluru Urban",
         "location_text": "Ward 12, Gandhi Nagar, Bengaluru Urban",
         "latitude": 12.97624,
-        "longitude": 77.59935,  # ~43 m from the flagship
+        "longitude": 77.59935,  # ~7 m from the flagship (haversine)
         "category": "Community Infrastructure",
         "sector": "Rural Development",
         "description": "Construction of community hall at Gandhi Nagar Ward 12 Bengaluru",
