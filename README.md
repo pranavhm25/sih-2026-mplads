@@ -216,3 +216,9 @@ All responses use the `{ data, meta }` envelope with dataset version + synthetic
 
 - **Backend:** see `backend/.env.example` (`DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `MODEL_VERSION`, `RULESET_VERSION`, `REPORT_STORAGE_PATH`, `DEMO_AUTOSEED`, `SESSION_TTL_HOURS`, `DEMO_ACCOUNTS_ENABLED`). Secrets stay out of Git.
 - **Frontend:** `VITE_API_URL` is baked in at build time from `frontend/.env.production` (empty locally — the Vite dev proxy handles `/api`).
+
+---
+
+<p align="center">
+  <strong>Team Codeholics</strong> · Built for Smart India Hackathon 2026
+</p>
