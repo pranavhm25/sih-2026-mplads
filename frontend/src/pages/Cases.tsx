@@ -24,7 +24,7 @@ export function CasesList() {
   return (
     <div className="mx-auto max-w-[1100px]">
       <header className="mb-4">
-        <h1 className="text-[26px] font-semibold leading-tight">Investigation Cases</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">Investigation Cases</h1>
         <p className="mt-0.5 text-meta text-ink-faint">
           Officer-owned records. Every action is written to the case audit trail.
         </p>
@@ -35,6 +35,7 @@ export function CasesList() {
           hint="Open a case from the Investigation Queue or a project page."
         />
       ) : (
+        <div className="-mx-4 overflow-x-auto sm:mx-0">
         <table className="ledger-table border-t border-ink/60">
           <thead>
             <tr>
@@ -75,6 +76,7 @@ export function CasesList() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   )
@@ -167,8 +169,8 @@ export function CaseDetail() {
         </p>
       )}
 
-      <div className="mt-5 grid grid-cols-12 gap-8">
-        <div className="col-span-7 min-w-0 space-y-8">
+      <div className="mt-5 grid grid-cols-12 gap-6 lg:gap-8">
+        <div className="col-span-12 min-w-0 space-y-8 lg:col-span-7">
           {/* Actions */}
           <section>
             <h2 className="section-title mb-2">Case actions</h2>
@@ -292,7 +294,7 @@ export function CaseDetail() {
         </div>
 
         {/* Side: project link + audit trail */}
-        <div className="col-span-5 space-y-8">
+        <div className="col-span-12 space-y-8 lg:col-span-5">
           {case_.project && (
             <section>
               <h2 className="section-title mb-2">Investigated work</h2>
