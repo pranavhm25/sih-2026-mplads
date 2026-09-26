@@ -207,7 +207,13 @@ export const api = {
     request<Case>('/cases', { method: 'POST', body: JSON.stringify(payload) }),
   updateCase: (
     id: string,
-    payload: { status?: string; resolution_type?: string; resolution_summary?: string; assigned_officer_id?: string },
+    payload: {
+      status?: string
+      resolution_type?: string
+      resolution_reason?: string
+      resolution_summary?: string
+      assigned_officer_id?: string
+    },
   ) => request<Case>(`/cases/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   addNote: (id: string, payload: { author_id: string; body: string }) =>
     request<Case>(`/cases/${id}/notes`, { method: 'POST', body: JSON.stringify(payload) }),

@@ -169,12 +169,13 @@ export interface Case {
   case_number: string
   project_id: string
   priority: string
-  status: 'OPEN' | 'UNDER_REVIEW' | 'FIELD_VERIFICATION' | 'RESOLVED' | 'ESCALATED'
+  status: 'OPEN' | 'UNDER_REVIEW' | 'FIELD_VERIFICATION' | 'RESOLVED' | 'ESCALATED' | 'CLOSED'
   assigned_officer_id: string | null
   opened_at: string
   updated_at: string
   closed_at: string | null
   resolution_type: string | null
+  resolution_reason: string | null
   resolution_summary: string | null
   project: ProjectSummary | null
   assigned_officer: Officer | null

@@ -458,3 +458,47 @@ minutes of a demo must not look like a crash.
   tsc + vite build green.
 - Demo login credentials are public seeded accounts (ministry@drishti.demo
   / drishti-demo) — documented, not secrets.
+## Not-Substantiated Case Outcome (2026-09-26)
+
+PRD R12 extension implementing "AI FLAG ≠ FRAUD": an AI-generated risk flag
+can be explicitly cleared by human investigation. Drishti prioritizes
+investigations; it does not determine guilt.
+
+- **State machine** (`CASE_TRANSITIONS` in app/core/constants.py, enforced
+  centrally; violations → 409): OPEN → UNDER_REVIEW → FIELD_VERIFICATION →
+  RESOLVED | ESCALATED | CLOSED. RESOLVED = concluded with recorded
+  classification (+ RESOLVED → ESCALATED); ESCALATED = substantiated concern
+  with a higher authority; CLOSED = not substantiated. CLOSED/ESCALATED →
+  UNDER_REVIEW is the supervisor reopen path (closed_at cleared, resolution
+  history kept).
+- **CLOSED requires** resolution_type = NOT_SUBSTANTIATED (a NEW type,
+  distinct from FALSE_POSITIVE which means the flag itself was wrong) + a
+  structured `resolution_reason` category (DOCUMENTATION_PROVIDED,
+  LEGITIMATE_DELAY, DATA_QUALITY_ISSUE, FALSE_DUPLICATE_CANDIDATE,
+  APPROVED_VARIATION, CONTEXTUAL_EXCEPTION, OTHER) + a free-text
+  `resolution_summary`. Validated centrally in the case service; useful 400s.
+- **Schema**: investigation_case.resolution_reason (String 40, nullable) —
+  migration e1a2b3c4d5e6 (down: d8e9f0a1b2c3). Statuses are data, not DDL.
+- **Audit trail**: every STATUS_CHANGED CaseEvent carries from/to status,
+  actor and outcome metadata (resolution_type + resolution_reason); the
+  hash-linked audit chain records CASE_UPDATED. AI signals are never
+  modified by any case action (regression-tested).
+- **Dashboard**: open-case counts (dashboard + stakeholder summary) exclude
+  RESOLVED, ESCALATED and CLOSED — a cleared case is concluded work, never
+  unresolved work.
+- **Reports**: cleared-case PDFs gain an explicit "Investigation outcome:
+  NOT SUBSTANTIATED" section with the reason category and the standing note
+  that this is not a fraud/innocence verdict; detected signals remain in the
+  report (never removed because the case was cleared).
+- **UI**: Case actions offer "→ Not substantiated (close case)" opening a
+  neutral outcome form (reason select + short explanation, submit gated);
+  status labels say "Closed — not substantiated"; an accent banner states
+  "AI-generated risk flags require human verification and do not constitute
+  findings of fraud." No red/green guilt-innocence language.
+- **Demo scenario** (bootstrap-gated by DEMO_AUTOSEED,
+  app/services/cases/demo_scenario.py): a completed investigation of the
+  flagship duplicate pair MPL-10281 — OPEN → UNDER_REVIEW →
+  FIELD_VERIFICATION → CLOSED (NOT_SUBSTANTIATED, FALSE_DUPLICATE_CANDIDATE)
+  with investigator notes and full audit trail; idempotent, recreated after
+  demo reseeds, closed cases free the project for future cases.
+- Tests: backend/tests/test_case_outcomes.py (20) + Cases.test.tsx (3).

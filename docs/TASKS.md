@@ -134,6 +134,16 @@ Deliver a stable SIH MVP in three days with the complete path:
       (pre-warm + read-only demo check), runbook with measured timings;
       8 backend tests + 6 frontend tests. Dashboard signal queries chunked
       under SQLite's bind-variable limit (500 on >999-project datasets).
+- [x] Not-substantiated case outcome (PRD R12 extension, "AI FLAG ≠ FRAUD"):
+      CLOSED status with enforced state machine (OPEN → UNDER_REVIEW →
+      FIELD_VERIFICATION → RESOLVED | ESCALATED | CLOSED), mandatory
+      NOT_SUBSTANTIATED outcome + structured reason category + free-text
+      explanation, STATUS_CHANGED audit events, immutable AI signals,
+      dashboard/stakeholder counts exclude concluded cases, cleared-case PDF
+      outcome section, investigator outcome form (neutral wording) + AI
+      disclaimer banner, seeded demo scenario on MPL-10281 (bootstrap,
+      DEMO_AUTOSEED); migration e1a2b3c4d5e6 (resolution_reason); 20 backend
+      + 3 frontend tests (tests/test_case_outcomes.py, Cases.test.tsx).
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
