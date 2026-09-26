@@ -114,6 +114,8 @@ class RelatedProjectOut(BaseModel):
     cost_similarity: float | None = None
     category_match: bool | None = None
     time_overlap: bool | None = None
+    vendor_match: bool | None = None
+    contextual_confidence: str | None = None
     combined_score: float
 
 

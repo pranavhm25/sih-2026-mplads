@@ -131,6 +131,8 @@ def to_detail(project: Project, fusion: dict | None,
             cost_similarity=float(link.cost_similarity) if link.cost_similarity is not None else None,
             category_match=link.category_match,
             time_overlap=link.time_overlap,
+            vendor_match=link.vendor_match,
+            contextual_confidence=link.contextual_confidence,
             combined_score=float(link.combined_score),
         ))
     # Also include links where this project is the *related* side.
@@ -155,6 +157,8 @@ def to_detail(project: Project, fusion: dict | None,
                 cost_similarity=float(link.cost_similarity) if link.cost_similarity is not None else None,
                 category_match=link.category_match,
                 time_overlap=link.time_overlap,
+                vendor_match=link.vendor_match,
+                contextual_confidence=link.contextual_confidence,
                 combined_score=float(link.combined_score),
             ))
 
