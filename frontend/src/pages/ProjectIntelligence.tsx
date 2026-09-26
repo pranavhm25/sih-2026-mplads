@@ -189,10 +189,10 @@ export default function ProjectIntelligence() {
     <div className="mx-auto max-w-[1200px]">
       {/* Header */}
       <header className="border-b-2 border-ink pb-4">
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="num text-[13px] text-ink-faint">{project.work_id}</p>
-            <h1 className="mt-0.5 max-w-2xl text-[24px] font-semibold leading-snug">{project.description}</h1>
+            <h1 className="mt-0.5 max-w-2xl text-[20px] font-semibold leading-snug sm:text-[24px]">{project.description}</h1>
             <p className="mt-1 text-[13px] text-ink-soft">
               {project.district}, {project.state} · {project.category ?? 'Uncategorised'} ·{' '}
               <span className="font-mono">{project.status}</span>
@@ -204,7 +204,7 @@ export default function ProjectIntelligence() {
               )}
             </p>
           </div>
-          <div className="shrink-0 border border-rule bg-paper px-4 py-3 text-right">
+          <div className="w-full border border-rule bg-paper px-4 py-3 text-left sm:w-auto sm:text-right">
             {project.priority ? (
               <>
                 <p className="section-title">Investigation priority</p>
@@ -233,12 +233,13 @@ export default function ProjectIntelligence() {
         </section>
       )}
 
-      <div className="mt-6 grid grid-cols-12 gap-8">
+      <div className="mt-6 grid grid-cols-12 gap-6 lg:gap-8">
         {/* Main column */}
-        <div className="col-span-8 min-w-0">
+        <div className="col-span-12 min-w-0 lg:col-span-8">
           {/* Evidence ledger */}
           <section>
             <h2 className="section-title mb-2">Evidence ledger</h2>
+            <div className="-mx-4 overflow-x-auto sm:mx-0">
             <table className="ledger-table border-t border-ink/60">
               <thead>
                 <tr>
@@ -311,12 +312,14 @@ export default function ProjectIntelligence() {
                 )}
               </tbody>
             </table>
+            </div>
           </section>
 
           {/* Peer context */}
           <section className="mt-8">
             <h2 className="section-title mb-2">Peer context</h2>
             {project.peers.length ? (
+              <div className="-mx-4 overflow-x-auto sm:mx-0">
               <table className="ledger-table border-t border-ink/60">
                 <thead>
                   <tr>
@@ -339,6 +342,7 @@ export default function ProjectIntelligence() {
                   ))}
                 </tbody>
               </table>
+              </div>
             ) : (
               <p className="border border-dashed border-rule bg-paper/60 px-4 py-3 text-[13px] text-ink-faint">
                 Insufficient comparable projects for a peer benchmark — no benchmark is fabricated.
@@ -350,6 +354,7 @@ export default function ProjectIntelligence() {
           <section className="mt-8">
             <h2 className="section-title mb-2">Potentially related works</h2>
             {project.related.length ? (
+              <div className="-mx-4 overflow-x-auto sm:mx-0">
               <table className="ledger-table border-t border-ink/60">
                 <thead>
                   <tr>
@@ -379,6 +384,7 @@ export default function ProjectIntelligence() {
                   ))}
                 </tbody>
               </table>
+              </div>
             ) : (
               <p className="text-[13px] text-ink-faint">No related works detected.</p>
             )}
@@ -417,7 +423,7 @@ export default function ProjectIntelligence() {
         </div>
 
         {/* Side column */}
-        <div className="col-span-4 space-y-8">
+        <div className="col-span-12 space-y-8 lg:col-span-4">
           {/* Source facts */}
           <section>
             <h2 className="section-title mb-2">Source record</h2>
@@ -560,7 +566,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 function TimelineItem({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-baseline gap-3">
-      <span className="w-44 shrink-0 text-ink-faint">{label}</span>
+      <span className="w-32 shrink-0 text-ink-faint sm:w-44">{label}</span>
       <span className="num font-medium">{value}</span>
     </li>
   )
