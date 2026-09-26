@@ -1,27 +1,32 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { api } from '../services/api'
+import { api, describeLoadFailure } from '../services/api'
 import type { DashboardData } from '../types/types'
 import { ErrorState, Loading, MetaLine, PriorityMark, SignalChips } from '../components/ui/Bits'
+import { BackendGate } from '../components/ui/BackendGate'
 import { formatINR, signalLabel } from '../lib/format'
 import CommandCenterMap from '../components/CommandCenterMap'
+import { isBackendUnavailableFailure } from '../services/api'
 
 export default function CommandCenter() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [meta, setMeta] = useState<{ version: string | null; is_synthetic: boolean | null } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [unavailable, setUnavailable] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setUnavailable(false)
     try {
       const res = await api.dashboard()
       setData(res.data)
       setMeta({ version: res.meta.dataset_version, is_synthetic: res.meta.is_synthetic })
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load dashboard')
+      setError(describeLoadFailure(e, 'Failed to load dashboard'))
+      setUnavailable(isBackendUnavailableFailure(e))
     } finally {
       setLoading(false)
     }
@@ -32,6 +37,7 @@ export default function CommandCenter() {
   }, [load])
 
   if (loading) return <Loading label="Loading command center…" />
+  if (error && unavailable) return <BackendGate onReady={() => void load()} />
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (!data) return <ErrorState message="No data available." onRetry={() => void load()} />
 

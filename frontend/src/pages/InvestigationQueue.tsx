@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../services/api'
+import { api, describeLoadFailure, isBackendUnavailableFailure } from '../services/api'
 import type { Officer, ProjectSummary, QueueResponse } from '../types/types'
 import { EmptyState, ErrorState, Loading, MetaLine, PriorityMark, SignalChips } from '../components/ui/Bits'
+import { BackendGate } from '../components/ui/BackendGate'
 import { PRIORITY_ORDER } from '../lib/format'
 
 const SIGNAL_OPTIONS = [
@@ -23,6 +24,7 @@ export default function InvestigationQueue() {
   const [officers, setOfficers] = useState<Officer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [unavailable, setUnavailable] = useState(false)
   const [creating, setCreating] = useState<string | null>(null)
   const [flash, setFlash] = useState<string | null>(null)
 
@@ -37,6 +39,7 @@ export default function InvestigationQueue() {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setUnavailable(false)
     try {
       const res = await api.queue({
         priority: filters.priority || undefined,
@@ -49,7 +52,8 @@ export default function InvestigationQueue() {
       setResp(res.data)
       setMeta({ version: res.meta.dataset_version, is_synthetic: res.meta.is_synthetic })
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load queue')
+      setError(describeLoadFailure(e, 'Failed to load queue'))
+      setUnavailable(isBackendUnavailableFailure(e))
     } finally {
       setLoading(false)
     }
@@ -195,6 +199,8 @@ export default function InvestigationQueue() {
 
       {loading ? (
         <Loading label="Loading queue…" />
+      ) : error && unavailable ? (
+        <BackendGate onReady={() => void load()} />
       ) : error ? (
         <ErrorState message={error} onRetry={() => void load()} />
       ) : !sortedItems.length ? (
