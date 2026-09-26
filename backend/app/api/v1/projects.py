@@ -19,7 +19,7 @@ from app.schemas.schemas import (
     ProjectSummary,
     QueueFilters,
 )
-from app.services.detection.fusion import compute_priorities
+from app.services.detection.fusion import compute_priorities, signals_for_project_ids
 from app.services.presenters import to_detail, to_summary
 
 router = APIRouter()
@@ -138,10 +138,9 @@ def dashboard_summary(db: Session = Depends(get_db)):
     quality_exceptions = 0
 
     signal_rows = (
-        db.query(ProjectSignal).filter(
-            ProjectSignal.project_id.in_([p.id for p in projects]),
-            ProjectSignal.triggered.is_(True),
-        ).all()
+        signals_for_project_ids(
+            db, [p.id for p in projects], ProjectSignal.triggered.is_(True)
+        )
         if projects else []
     )
     for s in signal_rows:

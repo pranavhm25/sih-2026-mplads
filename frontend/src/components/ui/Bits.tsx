@@ -80,3 +80,55 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   )
 }
 
+/**
+ * Waking-backend state (docs/DEMO_RUNBOOK.md). Rendered while the backend
+ * cold-starts or its database warms up — deliberately NOT an error: the
+ * demo continues once the service finishes starting.
+ */
+export function BackendStartingState({ detail }: { detail?: string | null }) {
+  return (
+    <div role="status" aria-live="polite" className="border border-amber/40 bg-amber-soft p-4">
+      <p className="font-plex text-[13px] font-semibold text-amber-signal">
+        Drishti backend is starting. Retrying connection…
+      </p>
+      {detail && <p className="mt-1 text-[12.5px] text-ink-soft">{detail}</p>}
+      <p className="mt-2 text-meta text-ink-faint">
+        Cold starts take up to a minute on the free hosting tier. If this persists,
+        see docs/DEMO_RUNBOOK.md §6.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Final failure after the bounded retry window: never says "crashed", always
+ * offers a concrete next action.
+ */
+export function BackendDownState({
+  detail,
+  onRetry,
+}: {
+  detail?: string | null
+  onRetry?: () => void
+}) {
+  return (
+    <div role="alert" className="border border-vermilion/40 bg-verms-soft p-4">
+      <p className="font-plex text-[13px] font-semibold text-vermilion">
+        Drishti backend is unreachable
+      </p>
+      {detail && <p className="mt-1 text-[12.5px] text-ink-soft">{detail}</p>}
+      <p className="mt-2 text-meta text-ink-faint">
+        The backend may be asleep (free hosting tier) or stopped. Wake it with{' '}
+        <span className="num">scripts/prewarm-demo.py</span>, or start it locally with{' '}
+        <span className="num">py -m uvicorn app.main:app --port 8317</span> in backend/.
+        Full guidance: docs/DEMO_RUNBOOK.md §6–7.
+      </p>
+      {onRetry && (
+        <button className="btn mt-3" onClick={onRetry}>
+          Retry connection
+        </button>
+      )}
+    </div>
+  )
+}
+

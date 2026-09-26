@@ -250,13 +250,11 @@ Maintain fixed synthetic fixtures for known anomaly scenarios.
   measured; data-unavailable patterns reported NOT_VALIDATABLE, never faked
 - language discipline: no claim of detecting real CAG cases, no accuracy
   metrics against unavailable real data
-- API surface: `/api/v1/validation/cag` and `…/summary`
-
-### Synthetic model validation tests (docs/SYNTHETIC_VALIDATION.md)
+- API surface: `/api/v1/validation/cag` and `…/summary`### Synthetic model validation tests (docs/SYNTHETIC_VALIDATION.md)
 - deterministic generation: same seed → byte-identical dataset + ground
   truth; different seed → different dataset
-- injection correctness: counts, unique namespaced IDs, ground truth
-  (record_id, is_injected_anomaly, anomaly_type, injection_id,
+- injection correctness: counts, unique namespaced IDs, ground
+  truth (record_id, is_injected_anomaly, anomaly_type, injection_id,
   original_record_id, expected_detector)
 - metric math verified against a hand-computed toy dataset
   (TP/FP/TN/FN → precision/recall/F1/FPR/detection rate)
@@ -264,6 +262,15 @@ Maintain fixed synthetic fixtures for known anomaly scenarios.
 - result serialization: JSON round-trip, no NaN/Infinity; totals add up
 - end-to-end scenario through the unmodified pipeline + DB cleanup
 - benchmark CLI: `py scripts/run_synthetic_validation.py` (deterministic)
+
+### Demo resilience tests (docs/DEMO_RUNBOOK.md)
+- readiness probe: 200 with demo data, 503 with checks (never a stack
+  trace) when the DB is unreachable or the demo dataset is missing;
+  never runs detection; session always closed
+- retry layer: GET-only, bounded exponential backoff, no retry on 4xx,
+  never retries mutations
+- waking UX: bounded readiness polling recovers to a full render when
+  the backend answers; exhausted window shows operator guidance
 
 ## 8. Deployment
 

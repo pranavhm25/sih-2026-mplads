@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { api } from '../services/api'
+import { api, describeLoadFailure, isBackendUnavailableFailure } from '../services/api'
 import type { Case, Officer, ProjectDetail, Signal } from '../types/types'
 import { ErrorState, Loading, PriorityMark } from '../components/ui/Bits'
+import { BackendGate } from '../components/ui/BackendGate'
 import { formatDate, formatINR, formatPct, signalLabel } from '../lib/format'
 
 // One evidence-ledger row per signal: SIGNAL | OBSERVED | REFERENCE | DELTA.
@@ -71,6 +72,7 @@ export default function ProjectIntelligence() {
   const { id } = useParams<{ id: string }>()
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [unavailable, setUnavailable] = useState(false)
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -84,11 +86,13 @@ export default function ProjectIntelligence() {
     if (!id) return
     setLoading(true)
     setError(null)
+    setUnavailable(false)
     try {
       const res = await api.project(id)
       setProject(res.data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load project')
+      setError(describeLoadFailure(e, 'Failed to load project'))
+      setUnavailable(isBackendUnavailableFailure(e))
     } finally {
       setLoading(false)
     }
@@ -180,6 +184,7 @@ export default function ProjectIntelligence() {
   }
 
   if (loading) return <Loading label="Loading project…" />
+  if (error && unavailable) return <BackendGate onReady={() => void load()} />
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (!project) return <ErrorState message="Project not found." onRetry={() => void load()} />
 
