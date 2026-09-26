@@ -287,6 +287,57 @@ DELAY_TRIGGER_DAYS = 90
 DELAY_HIGH_DAYS = 180
 DUPLICATE_SCORE_TRIGGER = 0.60
 DUPLICATE_SCORE_HIGH = 0.75
+
+# ---------------------------------------------------------------------------
+# Duplicate-candidate contextual validation ("similarity ≠ duplication").
+#
+# TF-IDF/cosine is a candidate GENERATOR: it measures linguistic similarity,
+# which government boilerplate produces constantly. A record only becomes a
+# STRONG duplicate candidate when independent contextual evidence agrees:
+# geospatial proximity and/or shared implementing agency. Each threshold is
+# documented with the reason it exists. See docs/TRD.md TR-07 and
+# docs/RULES.md §6.
+# ---------------------------------------------------------------------------
+
+# Geospatial gate: MPLADS works are local-area capital works; two genuinely
+# distinct sanctioned works serving the same purpose are rarely sited within
+# a few metres. Pairs closer than this are candidate matches; the value sits
+# well below the 50 m full-proximity band in combined_score so the gate is
+# not arbitrary relative to the scorer.
+DUPLICATE_GEO_STRONG_M = 50.0
+# Beyond this distance a pair cannot be a strong candidate even with
+# identical text — the works are in different places. (Taper above this
+# affects only scoring, not classification.)
+DUPLICATE_GEO_MAX_M = 2000.0
+
+# Combined-score floor for the contextual band: pairs scoring in
+# [trigger, high) carry a MEDIUM baseline; contextual agreement decides
+# whether a strong band is reached. Kept = DUPLICATE_SCORE_HIGH so the
+# legacy high band and the contextual band agree.
+DUPLICATE_CONTEXTUAL_STRONG = 0.75
+
+# Weights for the contextual confidence assessment (documented, transparent,
+# no ML): geo evidence is the strongest independent signal, vendor agreement
+# is corroborating, cost/category/time already live in combined_score.
+DUPLICATE_CONF_WEIGHT_GEO = 0.55
+DUPLICATE_CONF_WEIGHT_VENDOR = 0.30
+DUPLICATE_CONF_WEIGHT_CONTEXT = 0.15  # cost/category/time agreement
+
+# Vendor-name normalization for overlap checks: strip legal-form noise and
+# punctuation so "Sri Balaji Constructions" and "Sri Balaji Constr." match
+# without fuzzy guessing (deterministic token set overlap).
+DUPLICATE_VENDOR_STOPWORDS = (
+    "sri", "smt", "private", "limited", "ltd", "pvt", "and", "the", "co",
+    "company", "enterprises", "contractors", "constructions", "builders",
+    "works", "agency", "division", "department", "engineering",
+)
+DUPLICATE_VENDOR_MIN_TOKEN_OVERLAP = 0.5  # shared core tokens / smaller set
+
+# Fusion penalty when a duplicate signal is contextually weak: textual
+# similarity alone must not drive an unjustified priority. Applied as a
+# multiplier on the standard DUPLICATE weight (see SPLIT_PAYMENT style docs
+# in fusion.py; penalty logic documented in TRD TR-07).
+DUPLICATE_WEAK_CONFIDENCE_WEIGHT = 0.6
 ML_ANOMALY_TRIGGER = -0.05  # Isolation Forest decision_function; below = unusual
 ML_ANOMALY_HIGH = -0.15
 AGENCY_SHARE_TRIGGER_PCT = 40.0  # % of district sanctioned value held by a single agency
