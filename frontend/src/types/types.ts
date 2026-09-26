@@ -441,3 +441,67 @@ export interface CagValidationSummary {
     { priority: string | null; score: number | null; enters_queue: boolean }
   >
 }
+
+// ---------------- Synthetic Model Validation (docs/SYNTHETIC_VALIDATION.md) ----------------
+
+export interface SyntheticScenarioSummary {
+  totals: {
+    records_evaluated: number
+    injected: number
+    normal: number
+    tp: number
+    fp: number
+    tn: number
+    fn: number
+  }
+  metrics: {
+    precision: number | null
+    recall: number | null
+    f1: number | null
+    false_positive_rate: number | null
+    detection_rate: number | null
+  }
+  per_anomaly_type: Record<
+    string,
+    {
+      injected: number
+      detected: number
+      missed: number
+      expected_detector: string
+      expected_detector_hits: number
+      metrics: {
+        precision: number | null
+        recall: number | null
+        f1: number | null
+      }
+    }
+  >
+  false_positive_count: number
+  false_negative_count: number
+  dataset_rows_imported: number
+  detection_run_status: string
+}
+
+export interface SyntheticValidationReport {
+  report_version: string
+  generated_at: string | null
+  language_discipline: string
+  experiment_configuration: {
+    seed: number
+    reference_date: string
+    threshold_tuning: string
+    detector_versions: string[]
+  }
+  scenarios: Record<string, SyntheticScenarioSummary>
+  overall: {
+    cm: { tp: number; fp: number; tn: number; fn: number }
+    metrics: {
+      precision: number | null
+      recall: number | null
+      f1: number | null
+      false_positive_rate: number | null
+      detection_rate: number | null
+    }
+    total_injected: number
+  }
+}

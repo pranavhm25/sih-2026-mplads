@@ -20,6 +20,7 @@ import type {
   TrendsData,
   ValidationSummary,
   CagValidationSummary,
+  SyntheticValidationReport,
 } from '../types/types'
 
 export const API_HOST = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
@@ -172,6 +173,10 @@ export const api = {
   // CAG-grounded validation (docs/CAG_VALIDATION.md) — representative,
   // synthetic reproduction of documented patterns; never CAG case data.
   cagValidationSummary: () => request<CagValidationSummary>('/validation/cag/summary'),
+  // Synthetic Model Validation — controlled injection benchmark;
+  // NOT real-world fraud detection accuracy (docs/SYNTHETIC_VALIDATION.md).
+  syntheticValidation: () =>
+    request<SyntheticValidationReport>('/validation/synthetic'),
   ingestFixture: (name: string) =>
     request<ImportSummary>(`/datasets/fixtures/${name}/ingest`, { method: 'POST' }),
   importFile: (file: File, datasetType?: string): Promise<Envelope<ImportSummary>> => {
