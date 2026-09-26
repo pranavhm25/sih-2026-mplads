@@ -214,6 +214,13 @@ def _ingest_demo_rows(db: Session, rows: list[dict]) -> Dataset:
 def bootstrap(db: Session) -> None:
     ensure_officers(db)
     seed_demo_if_empty(db)
+    # Completed-investigation demo scenario (AI flag → human verification →
+    # not substantiated) on the flagship duplicate pair. Only when the demo
+    # dataset was just seeded/already present; never touches imported data.
+    if settings.demo_autoseed:
+        from app.services.cases.demo_scenario import seed_demo_case_scenario
+
+        seed_demo_case_scenario(db)
     # Stakeholder demo accounts (backlog #2/#4) — config-gated so production
     # can disable them; creation is idempotent.
     if settings.demo_accounts_enabled:
