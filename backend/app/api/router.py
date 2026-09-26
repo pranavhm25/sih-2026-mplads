@@ -9,7 +9,8 @@ Routers:
 - stakeholder — role-scoped views (backlog #4), validation story (#3),
                 alert digest (#6), trends (#7)
 - cag_validation — CAG-grounded pattern capability report
-                  (docs/CAG_VALIDATION.md)
+                  (docs/CAG_VALIDATION.md) + synthetic injection
+                  benchmark (docs/SYNTHETIC_VALIDATION.md)
 """
 from fastapi import APIRouter
 

@@ -7,6 +7,7 @@ import { CaseDetail, CasesList } from './pages/Cases'
 import DataScreen from './pages/Data'
 import Stakeholders from './pages/Stakeholders'
 import CagValidation from './pages/CagValidation'
+import SyntheticValidation from './pages/SyntheticValidation'
 import SystemStatus from './pages/SystemStatus'
 
 const router = createBrowserRouter([
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
       { path: 'data', element: <DataScreen /> },
       { path: 'stakeholders', element: <Stakeholders /> },
       { path: 'validation', element: <CagValidation /> },
+      { path: 'validation/synthetic', element: <SyntheticValidation /> },
       { path: 'system', element: <SystemStatus /> },
     ],
   },

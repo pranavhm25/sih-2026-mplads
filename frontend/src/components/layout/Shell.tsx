@@ -8,6 +8,7 @@ const NAV = [
   { to: '/data', label: 'Data' },
   { to: '/stakeholders', label: 'Stakeholder views' },
   { to: '/validation', label: 'Evidence & Validation' },
+  { to: '/validation/synthetic', label: 'Synthetic validation' },
   { to: '/system', label: 'System status' },
 ]
 

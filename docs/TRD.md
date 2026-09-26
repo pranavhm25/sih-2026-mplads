@@ -235,6 +235,19 @@ Maintain fixed synthetic fixtures for known anomaly scenarios.
   metrics against unavailable real data
 - API surface: `/api/v1/validation/cag` and `…/summary`
 
+### Synthetic model validation tests (docs/SYNTHETIC_VALIDATION.md)
+- deterministic generation: same seed → byte-identical dataset + ground
+  truth; different seed → different dataset
+- injection correctness: counts, unique namespaced IDs, ground truth
+  (record_id, is_injected_anomaly, anomaly_type, injection_id,
+  original_record_id, expected_detector)
+- metric math verified against a hand-computed toy dataset
+  (TP/FP/TN/FN → precision/recall/F1/FPR/detection rate)
+- zero-division handling: undefined metrics are `null`, never fabricated
+- result serialization: JSON round-trip, no NaN/Infinity; totals add up
+- end-to-end scenario through the unmodified pipeline + DB cleanup
+- benchmark CLI: `py scripts/run_synthetic_validation.py` (deterministic)
+
 ## 8. Deployment
 
 Preferred architecture:

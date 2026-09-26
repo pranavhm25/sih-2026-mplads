@@ -118,6 +118,10 @@ Deliver a stable SIH MVP in three days with the complete path:
       verified CAG findings → pattern catalog → synthetic reproduction →
       unmodified detector run → honest per-pattern results; 25 automated
       tests; Evidence & Validation screen.
+- [x] Synthetic model validation framework (docs/SYNTHETIC_VALIDATION.md):
+      deterministic injection engine with ground truth, scenario matrix,
+      precision/recall/F1/FPR/confusion metrics, machine-readable artifact,
+      CLI runner + API + Synthetic Model Validation panel; 19 automated tests.
 - [ ] Officer feedback analytics.
 - [ ] Compliance dashboard.
 
@@ -127,6 +131,9 @@ Deliver a stable SIH MVP in three days with the complete path:
 - [ ] Unit tests for every detection rule.
 - [x] CAG validation tests (fixture provenance, detector execution, honest
       result generation, language discipline, API surface).
+- [x] Synthetic validation tests (determinism, injection correctness,
+      ground truth, metric math incl. toy dataset, zero-division, JSON
+      serialization, end-to-end scenario, DB cleanup).
 - [ ] Unit tests for fusion.
 - [ ] API integration tests.
 - [ ] Dataset fixture tests.
