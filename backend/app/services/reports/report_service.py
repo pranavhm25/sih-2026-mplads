@@ -185,6 +185,34 @@ def generate_case_report(db: Session, case: InvestigationCase, officer: Officer)
 
     # --- Case record -----------------------------------------------------------
     story.append(Paragraph("5. Case record and officer remarks", h2))
+    if case.status == "CLOSED":
+        # A cleared case still shows its original automated flags (section 2
+        # is untouched) plus the explicit human outcome and its reasoning —
+        # clearing a flag never erases the detection history.
+        story.append(Paragraph(
+            "<b>Investigation outcome: NOT SUBSTANTIATED.</b> Human "
+            "investigation did not substantiate the flagged concern. This is "
+            "not a finding of fraud or of innocence, and it does not imply the "
+            "automated signals were wrong: the available evidence did not "
+            "substantiate the concern. The original AI-generated signals are "
+            "preserved above as historical detection evidence.",
+            base,
+        ))
+        reason_label = {
+            "DOCUMENTATION_PROVIDED": "Documentation provided",
+            "LEGITIMATE_DELAY": "Legitimate implementation delay",
+            "DATA_QUALITY_ISSUE": "Data quality issue",
+            "FALSE_DUPLICATE_CANDIDATE": "False duplicate candidate",
+            "APPROVED_VARIATION": "Approved variation",
+            "CONTEXTUAL_EXCEPTION": "Contextual exception",
+            "OTHER": "Other",
+        }.get(case.resolution_reason or "", case.resolution_reason or "—")
+        story.append(Paragraph(
+            f"Outcome classification: {case.resolution_type or '—'} · "
+            f"Reason category: {_rs(reason_label)}",
+            cell,
+        ))
+        story.append(Spacer(1, 2))
     for ev in case.events:
         when = ev.created_at.strftime("%Y-%m-%d %H:%M") if ev.created_at else ""
         desc = f"{ev.event_type}"

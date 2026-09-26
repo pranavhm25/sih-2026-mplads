@@ -172,7 +172,12 @@ def dashboard_summary(db: Session = Depends(get_db)):
                        -(i.priority.score if i.priority else 0)),
     )[:8]
 
-    open_cases = sum(1 for c in cases.values() if c.status not in ("RESOLVED",))
+    # A concluded case is no longer open work: RESOLVED (concluded with a
+    # record), ESCALATED (with a higher authority) and CLOSED (the human
+    # investigation did not substantiate the flagged concern) all leave the
+    # open queue — a NOT_SUBSTANTIATED case must not count as unresolved.
+    _CONCLUDED = ("RESOLVED", "CLOSED", "ESCALATED")
+    open_cases = sum(1 for c in cases.values() if c.status not in _CONCLUDED)
 
     summary = DashboardSummary(
         total_works=len(items),
