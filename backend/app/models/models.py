@@ -266,6 +266,10 @@ class RelatedProject(Base):
     cost_similarity: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     category_match: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     time_overlap: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    # Contextual validation ("similarity ≠ duplication"): vendor agreement
+    # and the resulting confidence band. NULL vendor_match = data unavailable.
+    vendor_match: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    contextual_confidence: Mapped[str | None] = mapped_column(String(20), nullable=True)
     combined_score: Mapped[Decimal] = mapped_column(Numeric(5, 4))
     relation_type: Mapped[str] = mapped_column(String(50), default="DUPLICATE_CANDIDATE")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
