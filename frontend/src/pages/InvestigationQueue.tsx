@@ -110,7 +110,7 @@ export default function InvestigationQueue() {
   return (
     <div className="mx-auto max-w-[1400px]">
       <header className="mb-4">
-        <h1 className="text-[26px] font-semibold leading-tight">Investigation Queue</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">Investigation Queue</h1>
         <MetaLine dataset={meta} />
         <p className="mt-0.5 text-meta text-ink-faint">
           Works ordered by converging evidence. Priority is a triage aid, not a finding.
@@ -118,11 +118,11 @@ export default function InvestigationQueue() {
       </header>
 
       {/* Filter bar */}
-      <div className="mb-3 flex flex-wrap items-center gap-3 border border-rule bg-paper px-3 py-2.5">
-        <label className="flex items-center gap-1.5 text-[12px] text-ink-soft">
+      <div className="mb-3 grid grid-cols-2 items-center gap-3 border border-rule bg-paper px-3 py-2.5 sm:flex sm:flex-wrap">
+        <label className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-soft">
           Priority
           <select
-            className="field py-1"
+            className="field max-sm:w-0 max-sm:flex-1 py-1"
             value={filters.priority}
             onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
           >
@@ -134,10 +134,10 @@ export default function InvestigationQueue() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-[12px] text-ink-soft">
+        <label className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-soft">
           Signal
           <select
-            className="field py-1"
+            className="field max-sm:w-0 max-sm:flex-1 py-1"
             value={filters.signal_type}
             onChange={(e) => setFilters((f) => ({ ...f, signal_type: e.target.value }))}
           >
@@ -149,10 +149,10 @@ export default function InvestigationQueue() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-[12px] text-ink-soft">
+        <label className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-soft">
           State
           <select
-            className="field py-1"
+            className="field max-sm:w-0 max-sm:flex-1 py-1"
             value={filters.state}
             onChange={(e) => setFilters((f) => ({ ...f, state: e.target.value }))}
           >
@@ -164,10 +164,10 @@ export default function InvestigationQueue() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-[12px] text-ink-soft">
+        <label className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-soft">
           Sort
           <select
-            className="field py-1"
+            className="field max-sm:w-0 max-sm:flex-1 py-1"
             value={filters.sort}
             onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value }))}
           >
@@ -176,10 +176,10 @@ export default function InvestigationQueue() {
             <option value="district">District</option>
           </select>
         </label>
-        <label className="ml-auto flex items-center gap-1.5 text-[12px] text-ink-soft">
+        <label className="col-span-2 flex items-center gap-1.5 text-[12px] text-ink-soft sm:col-span-1 sm:ml-auto">
           Search
           <input
-            className="field w-52 py-1"
+            className="field min-w-0 flex-1 py-1 sm:w-52 sm:flex-none"
             placeholder="Work ID or description…"
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
@@ -203,7 +203,7 @@ export default function InvestigationQueue() {
           hint="Clear a filter or re-run detection to refresh signals."
         />
       ) : (
-        <div className="overflow-x-auto border-t border-ink/60">
+        <div className="-mx-4 overflow-x-auto border-t border-ink/60 sm:mx-0">
           <table className="ledger-table min-w-[900px]">
             <thead className="sticky top-0 bg-paper">
               <tr>
@@ -268,7 +268,7 @@ export default function InvestigationQueue() {
               ))}
             </tbody>
           </table>
-          <p className="mt-2 text-meta text-ink-faint">
+          <p className="mt-2 px-4 text-meta text-ink-faint sm:px-0">
             {resp?.total ?? 0} works in current view · server-side filters
           </p>
         </div>
