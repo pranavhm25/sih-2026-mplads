@@ -340,3 +340,42 @@ investigation queue. NO accuracy claims against real CAG data: the
 underlying work-level records are not publicly available. Tests:
 backend/tests/test_cag_validation.py (25), module-end cleanup restores
 the demo dataset as the latest import for other integration tests.
+
+
+## Synthetic Model Validation (2026-09-26)
+
+Quantitative, reproducible injection benchmark of the UNMODIFIED pipeline
+(docs/SYNTHETIC_VALIDATION.md). Positioning language: "Controlled
+synthetic benchmark — results do NOT represent production-world fraud
+detection accuracy." Never present its numbers as real-world accuracy.
+
+- Engine (`app/services/validation/synthetic/`): `metrics.py` (pure,
+  zero-division-safe confusion matrix + precision/recall/F1/FPR/detection
+  rate), `injection.py` (seeded `SyntheticDatasetBuilder`: 60-row baseline
+  in documented normal bands + 5 injectors — cost inflation, duplicate
+  pairs, abnormal duration, spending-pattern, suspicious attributes —
+  each recording full ground truth), `benchmark.py` (scenarios A–D →
+  real ingestion → unmodified detection → per-record evaluation → JSON).
+- Scenarios: A clean baseline / B small / C moderate / D mixed
+  (60 baseline works each; 11/20/29 injected).
+- Ground truth per record: record_id, ground_truth normal|anomaly,
+  anomaly_type, injection_id, original_record_id, expected_detector.
+  Baseline flags are FALSE POSITIVES, listed in the artifact (never
+  discarded).
+- Metrics discipline: undefined = `null`, never a fabricated 0/1;
+  `hit_expected_detector` tracked separately from the headline "flagged".
+- Determinism: seed 26102 (configurable); same seed → byte-identical
+  report (apart from generated_at). Reference date pinned 2026-09-01.
+- Artifact: `docs/synthetic_validation_results.json` (regenerate via
+  `py scripts/run_synthetic_validation.py` from backend/). Docs numbers
+  ALWAYS come from the artifact — never hand-written.
+- Reference result (seed 26102): overall TP 60 / FP 8 / TN 232 / FN 0,
+  precision 0.8824, recall 1.0000, F1 0.9375, FPR 0.0333; scenarios B/C/D
+  perfect (P=R=F1=1.0, FPR=0). The 8 FPs are LOW-priority ML_ANOMALY
+  signals in scenario A, caused by the IF all-NaN duplicate-score column
+  imputation — honest engine quirk, reported not patched. No threshold
+  tuning was performed.
+- API: `GET /api/v1/validation/synthetic` (cached per seed). UI:
+  Synthetic validation panel (`/validation/synthetic`) with the standing
+  benchmark disclaimer. Tests: backend/tests/test_synthetic_validation.py
+  (19).
