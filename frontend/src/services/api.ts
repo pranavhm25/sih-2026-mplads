@@ -74,23 +74,100 @@ async function toApiError(res: Response): Promise<ApiError> {
   return new ApiError(res.status, message, code)
 }
 
+// ---------------------------------------------------------------------------
+// Cold-start resilience (docs/DEMO_RUNBOOK.md).
+//
+// Free hosting (Render free tier) sleeps the backend; the first request can
+// take 30-60s while the service spins up. GET requests are idempotent, so
+// they retry with bounded exponential backoff. Mutations (POST/PATCH/…)
+// NEVER auto-retry — a retried case creation would duplicate a case.
+// Retries trigger ONLY on network failures or 502/503/504 (backend waking/
+// restarting), never on 4xx application errors.
+// ---------------------------------------------------------------------------
+
+const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 8000] // bounded: ~23s of waiting
+const RETRYABLE_STATUS = new Set([502, 503, 504])
+
+export function isRetryableFailure(e: unknown): boolean {
+  if (e instanceof ApiError) return RETRYABLE_STATUS.has(e.status)
+  return e instanceof TypeError // fetch network failure / connection refused
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+/** Test hook: vitest uses fake/real timers with no 8s patience. */
+export function setRetryDelaysForTesting(ms: number[]): void {
+  RETRY_DELAYS_MS.splice(0, RETRY_DELAYS_MS.length, ...ms)
+}
+
+/** GET-only retry wrapper: bounded, exponential, safe (idempotent verb). */
+export async function fetchWithRetry<T>(
+  doFetch: () => Promise<T>,
+  onRetry?: (attempt: number, maxAttempts: number) => void,
+): Promise<T> {
+  const attempts = RETRY_DELAYS_MS.length + 1
+  let lastError: unknown
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await doFetch()
+    } catch (e) {
+      lastError = e
+      if (i === attempts - 1 || !isRetryableFailure(e)) throw e
+      onRetry?.(i + 1, attempts)
+      await delay(RETRY_DELAYS_MS[i])
+    }
+  }
+  throw lastError // unreachable, satisfies TS
+}
+
+/**
+ * True when a failure looks like a backend that is down/waking (cold start,
+ * 502/503/504, connection refused) rather than an application error.
+ * Used to pick the "backend is starting" UX instead of a scary error.
+ */
+export function isBackendUnavailableFailure(e: unknown): boolean {
+  return isRetryableFailure(e)
+}
+
+/**
+ * Friendly message for a failed load. When the backend is merely waking
+ * (cold start), the message invites patience instead of implying a crash.
+ */
+export function describeLoadFailure(e: unknown, fallback: string): string {
+  if (isBackendUnavailableFailure(e)) {
+    return 'The Drishti backend is not responding. If this is a cold start it should be up in under a minute — retry, or run the pre-warm script (docs/DEMO_RUNBOOK.md).'
+  }
+  return e instanceof Error && e.message ? e.message : fallback
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<Envelope<T>> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: authHeaders(),
-    ...init,
-  })
-  if (!res.ok) throw await toApiError(res)
-  return res.json() as Promise<Envelope<T>>
+  const doFetch = async (): Promise<Envelope<T>> => {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: authHeaders(),
+      ...init,
+    })
+    if (!res.ok) throw await toApiError(res)
+    return res.json() as Promise<Envelope<T>>
+  }
+  // Only idempotent reads retry; anything with a body/method is one-shot.
+  const isRead = (init?.method ?? 'GET') === 'GET' && !init?.body
+  return isRead ? fetchWithRetry(doFetch) : doFetch()
 }
 
 /** Like request(), for endpoints that return bare JSON without the {data, meta} envelope. */
 async function bareRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: authHeaders(),
-    ...init,
-  })
-  if (!res.ok) throw await toApiError(res)
-  return res.json() as Promise<T>
+  const doFetch = async (): Promise<T> => {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: authHeaders(),
+      ...init,
+    })
+    if (!res.ok) throw await toApiError(res)
+    return res.json() as Promise<T>
+  }
+  const isRead = (init?.method ?? 'GET') === 'GET' && !init?.body
+  return isRead ? fetchWithRetry(doFetch) : doFetch()
 }
 
 export interface HealthData {
@@ -98,9 +175,24 @@ export interface HealthData {
   service: string
 }
 
+export interface ReadinessData {
+  status: 'ok' | 'starting'
+  ready: boolean
+  checks: Record<string, string>
+}
+
 export const api = {
   // /api/v1/health intentionally returns bare JSON (liveness probe), not the envelope.
   health: () => bareRequest<HealthData>('/health'),
+  // /api/v1/health/ready — bare JSON; 503 carries {status:'starting',...}.
+  // One-shot (no retry layer): the readiness hook applies its own polling
+  // cadence and needs each answer immediately, not 23s of in-request retries.
+  healthReady: async (): Promise<ReadinessData> => {
+    const res = await fetch(`${BASE}/health/ready`, { headers: authHeaders() })
+    const body = (await res.json().catch(() => null)) as ReadinessData | null
+    if (body && typeof body.ready === 'boolean') return body
+    throw await toApiError(res)
+  },
   dashboard: () => request<DashboardData>('/dashboard/summary'),
   queue: (params: Record<string, string | undefined>) => {
     const qs = new URLSearchParams()
